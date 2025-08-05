@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>TS Angel Voice AI</title>
+  <style>
+    body {
+      background: black;
+      color: white;
+      text-align: center;
+      font-family: Arial, sans-serif;
+      padding: 40px;
+    }
+    h1 {
+      color: #00ffe7;
+      animation: glow 2s infinite;
+    }
+    button {
+      background-color: #00ffe7;
+      color: black;
+      font-size: 1.2rem;
+      padding: 15px 30px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 20px;
+      animation: pulse 2s infinite;
+    }
+    #output {
+      font-size: 1.2rem;
+      margin-top: 30px;
+      color: #ffcc00;
+    }
+    @keyframes glow {
+      0%, 100% { text-shadow: 0 0 5px #0ff, 0 0 10px #0ff; }
+      50% { text-shadow: 0 0 15px #0ff, 0 0 30px #0ff; }
+    }
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 10px #00ffe7; }
+      50% { box-shadow: 0 0 20px #00ffe7; }
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🎙️ TS Angel Voice AI</h1>
+  <p>Press the button and speak anything in <b>Bangla, Hindi, or English</b></p>
+
+  <button onclick="startListening()">🎤 Talk to Angel</button>
+
+  <p id="output">Waiting for your command...</p>
+
+  <script>
+    const output = document.getElementById("output");
+
+    async function speak(text) {
+      const utter = new SpeechSynthesisUtterance(text);
+      utter.lang = 'en-IN'; // You can use 'bn-BD' or 'hi-IN'
+      speechSynthesis.speak(utter);
+    }
+
+    async function sendToGPT(message) {
+      output.innerText = "🧠 Thinking...";
+
+      try {
+        const response = await fetch("https://api.openai.com/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer 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"
+          },
+          body: JSON.stringify({
+            model: "gpt-4",
+            messages: [
+              { role: "system", content: "You are TS Angel, a female assistant who understands Bangla, Hindi, and English. Respond with helpful voice replies." },
+              { role: "user", content: message }
+            ]
+          })
+        });
+
+        const data = await response.json();
+        const reply = data.choices[0].message.content;
+        output.innerText = reply;
+        speak(reply);
+      } catch (err) {
+        output.innerText = "❌ Error connecting to GPT!";
+        speak("Sorry, something went wrong.");
+        console.error(err);
+      }
+    }
+
+    function startListening() {
+      const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+      recognition.lang = 'en-IN';
+      recognition.interimResults = false;
+
+      recognition.onstart = () => {
+        output.innerText = "🎧 Listening...";
+      };
+
+      recognition.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        output.innerText = `You said: "${transcript}"`;
+        sendToGPT(transcript);
+      };
+
+      recognition.onerror = () => {
+        output.innerText = "❌ Voice recognition failed!";
+      };
+
+      recognition.start();
+    }
+  </script>
+
+</body>
+</html>
