@@ -2,33 +2,23 @@ const output = document.getElementById("output");
 
 async function speak(text) {
   const utter = new SpeechSynthesisUtterance(text);
-  utter.lang = 'bn-BD'; // Bangla (use 'en-IN' for English/Hindi)
+  utter.lang = 'en-IN'; // You can change to 'bn-BD' or 'hi-IN' as needed
   speechSynthesis.speak(utter);
 }
 
 async function sendToGPT(message) {
   output.innerText = "🧠 Thinking...";
   try {
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    const response = await fetch("/api/chat", {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${OPENAI_API_KEY}`
+        "Content-Type": "application/json"
       },
-      body: JSON.stringify({
-        model: "gpt-3.5-turbo", // Or "gpt-4" if your key supports
-        messages: [
-          {
-            role: "system",
-            content: "You are TS Angel, a smart Bangla-English-Hindi voice assistant. Speak politely and answer all questions clearly."
-          },
-          { role: "user", content: message }
-        ]
-      })
+      body: JSON.stringify({ message })
     });
 
     const data = await response.json();
-    const reply = data.choices[0].message.content;
+    const reply = data.reply || "❌ No response from server.";
     output.innerText = reply;
     speak(reply);
   } catch (err) {
@@ -40,7 +30,7 @@ async function sendToGPT(message) {
 
 function startListening() {
   const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-  recognition.lang = 'bn-BD'; // Change to 'en-IN' for English/Hindi
+  recognition.lang = 'en-IN'; // Use 'bn-BD' for Bangla, 'hi-IN' for Hindi
   recognition.interimResults = false;
 
   recognition.onstart = () => {
@@ -55,7 +45,7 @@ function startListening() {
 
   recognition.onerror = (event) => {
     output.innerText = "❌ Voice recognition failed!";
-    speak("Sorry, couldn't hear you.");
+    speak("Voice input failed.");
   };
 
   recognition.start();
