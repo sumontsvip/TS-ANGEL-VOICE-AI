@@ -1,10 +1,10 @@
-const OPENAI_API_KEY = "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";
+const OPENAI_API_KEY = "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";
 
 const output = document.getElementById("output");
 
 async function speak(text) {
   const utter = new SpeechSynthesisUtterance(text);
-  utter.lang = 'en-IN'; // For Bangla: 'bn-BD'
+  utter.lang = 'bn-BD'; // Bangla (use 'en-IN' for English/Hindi)
   speechSynthesis.speak(utter);
 }
 
@@ -18,16 +18,13 @@ async function sendToGPT(message) {
         Authorization: `Bearer ${OPENAI_API_KEY}`
       },
       body: JSON.stringify({
-        model: "gpt-4",
+        model: "gpt-3.5-turbo", // Or "gpt-4" if your key supports
         messages: [
           {
             role: "system",
-            content: "You are TS Angel, a friendly AI girlfriend who understands Bangla, Hindi, and English. Reply very sweetly, like a romantic trading partner."
+            content: "You are TS Angel, a smart Bangla-English-Hindi voice assistant. Speak politely and answer all questions clearly."
           },
-          {
-            role: "user",
-            content: message
-          }
+          { role: "user", content: message }
         ]
       })
     });
@@ -36,7 +33,6 @@ async function sendToGPT(message) {
     const reply = data.choices[0].message.content;
     output.innerText = reply;
     speak(reply);
-
   } catch (err) {
     output.innerText = "❌ Error connecting to GPT!";
     speak("Sorry, something went wrong.");
@@ -46,7 +42,7 @@ async function sendToGPT(message) {
 
 function startListening() {
   const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-  recognition.lang = 'en-IN'; // For Bangla: 'bn-BD'
+  recognition.lang = 'bn-BD'; // Change to 'en-IN' for English/Hindi
   recognition.interimResults = false;
 
   recognition.onstart = () => {
@@ -61,7 +57,7 @@ function startListening() {
 
   recognition.onerror = (event) => {
     output.innerText = "❌ Voice recognition failed!";
-    speak("Sorry, I couldn't hear you properly.");
+    speak("Sorry, couldn't hear you.");
   };
 
   recognition.start();
