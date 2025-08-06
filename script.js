@@ -5,7 +5,6 @@ async function speak(text) {
   utter.lang = 'en-IN'; // For Bangla try 'bn-BD'
   speechSynthesis.speak(utter);
 }
-
 async function sendToGPT(message) {
   output.innerText = "🧠 Thinking...";
   try {
