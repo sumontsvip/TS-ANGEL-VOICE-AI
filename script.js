@@ -2,7 +2,7 @@ const output = document.getElementById("output");
 
 async function speak(text) {
   const utter = new SpeechSynthesisUtterance(text);
-  utter.lang = 'en-IN'; // You can change to 'bn-BD' for Bangla or 'hi-IN' for Hindi
+  utter.lang = 'en-IN';
   speechSynthesis.speak(utter);
 }
 
@@ -18,6 +18,11 @@ async function sendToGPT(message) {
     });
 
     const data = await response.json();
+
+    if (data.error) {
+      throw new Error(data.error);
+    }
+
     const reply = data.reply;
     output.innerText = reply;
     speak(reply);
@@ -30,7 +35,7 @@ async function sendToGPT(message) {
 
 function startListening() {
   const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-  recognition.lang = 'en-IN'; // or 'bn-BD' / 'hi-IN'
+  recognition.lang = 'en-IN';
   recognition.interimResults = false;
 
   recognition.onstart = () => {
