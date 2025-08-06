@@ -9,29 +9,15 @@ async function speak(text) {
 async function sendToGPT(message) {
   output.innerText = "🧠 Thinking...";
   try {
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    const response = await fetch("/api/chat", {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${import.meta.env.OPENAI_API_KEY}`
+        "Content-Type": "application/json"
       },
-      body: JSON.stringify({
-        model: "gpt-4",
-        messages: [
-          {
-            role: "system",
-            content: "You are TS Angel. Reply like a sweet voice assistant. Understand Bangla, Hindi, English."
-          },
-          {
-            role: "user",
-            content: message
-          }
-        ]
-      })
+      body: JSON.stringify({ message })
     });
-
     const data = await response.json();
-    const reply = data.choices[0].message.content;
+    const reply = data.reply;
     output.innerText = reply;
     speak(reply);
   } catch (err) {
