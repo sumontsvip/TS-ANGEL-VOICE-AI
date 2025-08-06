@@ -1,5 +1,3 @@
-const OPENAI_API_KEY = "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";
-
 const output = document.getElementById("output");
 
 async function speak(text) {
