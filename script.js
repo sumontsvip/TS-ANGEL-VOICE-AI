@@ -2,9 +2,10 @@ const output = document.getElementById("output");
 
 async function speak(text) {
   const utter = new SpeechSynthesisUtterance(text);
-  utter.lang = 'en-IN'; // For Bangla try 'bn-BD'
+  utter.lang = 'en-IN'; // You can change to 'bn-BD' for Bangla or 'hi-IN' for Hindi
   speechSynthesis.speak(utter);
 }
+
 async function sendToGPT(message) {
   output.innerText = "🧠 Thinking...";
   try {
@@ -29,7 +30,7 @@ async function sendToGPT(message) {
 
 function startListening() {
   const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-  recognition.lang = 'en-IN'; // Supports Indian English + Hindi accent
+  recognition.lang = 'en-IN'; // or 'bn-BD' / 'hi-IN'
   recognition.interimResults = false;
 
   recognition.onstart = () => {
