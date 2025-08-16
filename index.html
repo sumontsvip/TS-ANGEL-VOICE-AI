@@ -1,417 +1,343 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>TS Angel Forex AI</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TS Angel Forex AI — Full</title>
   <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      overflow-x: hidden;
-      font-family: 'Arial', sans-serif;
-      color: white;
-      background: black;
-    }
-    canvas#starfield {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%;
-      height: 100%;
-      z-index: -1;
-    }
-    body { text-align: center; padding: 20px; }
-    h1 { color: #00ffe7; animation: neon-flicker 1.5s infinite; }
-    #timeDisplay { font-size: 1.2rem; color: #ffcc00; animation: neon-flicker 2s infinite; }
-
-    select, button {
-      padding: 12px 20px; margin: 10px; font-size: 1rem;
-      border-radius: 5px; background-color: #111; color: #00ffea;
-      border: 2px solid #00ffea; cursor: pointer; animation: glow-pulse 2s infinite;
-    }
-    button:hover { background-color: #00ffea; color: black; }
-    iframe {
-      width: 100%; height: 500px; border: none; margin-top: 25px; border-radius: 10px;
-      box-shadow: 0 0 20px #00ffe7; animation: glow-pulse 3s infinite;
-    }
-    .signal-box {
-      margin-top: 25px; background: #111; padding: 20px; border-radius: 10px;
-      font-size: 1.1rem; color: #ffcc00; animation: glow-pulse 1.5s infinite;
-    }
-    .watermark { margin-top: 40px; font-size: 1.2rem; color: #00ffe7; animation: neon-flicker 2s infinite; }
-
-    .levels { margin-top: 10px; }
-    .levels span {
-      display: inline-block; margin: 6px 6px; padding: 6px 10px; border: 1px solid #00ffea;
-      border-radius: 6px; cursor: pointer; user-select: none;
-    }
-    .levels span:hover { background:#00ffea; color:#000; }
-    .muted { color:#8fe; font-size: 0.95rem; }
-
-    @keyframes neon-flicker {
-      0%, 100% { text-shadow: 0 0 5px #0ff, 0 0 10px #0ff, 0 0 20px #0ff; }
-      50% { text-shadow: 0 0 2px #0ff, 0 0 5px #0ff; }
-    }
-    @keyframes glow-pulse {
-      0%, 100% { box-shadow: 0 0 10px #00ffe7, 0 0 20px #00ffe7; }
-      50% { box-shadow: 0 0 5px #00ffe7, 0 0 10px #00ffe7; }
-    }
+    html,body{margin:0;padding:0;overflow-x:hidden;font-family:Arial,sans-serif;background:black;color:white;text-transform:uppercase}
+    canvas#starfield{position:fixed;top:0;left:0;width:100%;height:100%;z-index:-1}
+    body{text-align:center;padding:20px}
+    h1{color:#00ffe7;animation:neon-flicker 1.5s infinite}
+    #timeDisplay{font-size:1.1rem;color:#ffcc00;animation:neon-flicker 2s infinite}
+    select,button{padding:12px 20px;margin:10px;font-size:1rem;border-radius:6px;background:#111;color:#00ffea;border:2px solid #00ffea;cursor:pointer;animation:glow-pulse 2s infinite}
+    button:hover{background:#00ffea;color:black}
+    iframe{width:100%;height:500px;border:none;margin-top:25px;border-radius:10px;box-shadow:0 0 20px #00ffe7;animation:glow-pulse 3s infinite}
+    .signal-box{margin-top:25px;background:#111;padding:20px;border-radius:10px;font-size:1.05rem;color:#ffcc00;animation:glow-pulse 1.5s infinite;white-space:pre-line;line-height:1.4}
+    .watermark{margin-top:40px;font-size:1.1rem;color:#00ffe7;animation:neon-flicker 2s infinite}
+    .levels a{color:#00ffea;text-decoration:underline;cursor:pointer;margin:0 6px;display:inline-block}
+    @keyframes neon-flicker{0%,100%{text-shadow:0 0 5px #0ff,0 0 10px #0ff,0 0 20px #0ff}50%{text-shadow:0 0 2px #0ff,0 0 5px #0ff}}
+    @keyframes glow-pulse{0%,100%{box-shadow:0 0 10px #00ffe7,0 0 20px #00ffe7}50%{box-shadow:0 0 5px #00ffe7,0 0 10px #00ffe7}}
+    .bar{display:flex;flex-wrap:wrap;justify-content:center;gap:8px}
   </style>
 </head>
 <body>
-<canvas id="starfield"></canvas>
+  <canvas id="starfield"></canvas>
+  <h1>🚀 TS ANGEL FOREX AI (BTC • GOLD • USOIL)</h1>
+  <p id="timeDisplay">⏰ CURRENT INDIAN TIME:</p>
 
-<h1>🚀 TS Angel Forex AI (BTC • GOLD • US OIL)</h1>
-<p id="timeDisplay">⏰ Current Indian Time: </p>
+  <div class="bar">
+    <select id="pairSelect" title="PAIR">
+      <option value="BTCUSD">BTCUSD</option>
+      <option value="XAUUSD" selected>XAUUSD</option>
+      <option value="USOIL">USOIL</option>
+    </select>
 
-<!-- Controls (unchanged layout spirit, just added mode & reset as requested earlier) -->
-<select id="pairSelect">
-  <option value="BTCUSD">BTCUSD</option>
-  <option value="XAUUSD">XAUUSD</option>
-  <option value="USOIL">USOIL</option>
-</select>
+    <select id="modeSelect" title="MODE">
+      <option value="MANUAL" selected>MANUAL</option>
+      <option value="AUTO">AUTO</option>
+    </select>
 
-<select id="modeSelect" title="Auto or Manual">
-  <option value="MANUAL">MANUAL</option>
-  <option value="AUTO">AUTO</option>
-</select>
+    <button onclick="playClick(); generateSignal()">📡 GENERATE SIGNAL</button>
+    <button onclick="playClick(); resetSignal()">♻️ RESET</button>
+  </div>
 
-<button onclick="playClick(); generateSignal()">📡 Generate Signal</button>
-<button onclick="resetSignal()">♻️ Reset</button>
-
-<div class="signal-box" id="signalBox">🔍 Waiting for signal...</div>
-<iframe id="tvChart"></iframe>
-
-<div class="watermark">💡 Created by Trader Sumon</div>
-<audio id="clickSound" src="https://assets.mixkit.co/sfx/preview/mixkit-game-click-1114.mp3"></audio>
+  <div class="signal-box" id="signalBox">🔍 WAITING FOR SIGNAL...</div>
+  <iframe id="tvChart"></iframe>
+  <div class="watermark">💡 CREATED BY TRADER SUMON</div>
+  <audio id="clickSound" src="https://assets.mixkit.co/sfx/preview/mixkit-game-click-1114.mp3"></audio>
 
 <script>
-/* ==== DOM ==== */
-const pairSelect  = document.getElementById("pairSelect");
-const modeSelect  = document.getElementById("modeSelect");
-const tvChart     = document.getElementById("tvChart");
-const signalBox   = document.getElementById("signalBox");
-const timeDisplay = document.getElementById("timeDisplay");
-const clickSound  = document.getElementById("clickSound");
+/* ================= DOM ================= */
+const pairSelect   = document.getElementById("pairSelect");
+const modeSelect   = document.getElementById("modeSelect");
+const tvChart      = document.getElementById("tvChart");
+const signalBox    = document.getElementById("signalBox");
+const timeDisplay  = document.getElementById("timeDisplay");
+const clickSound   = document.getElementById("clickSound");
 
-/* ==== State ==== */
+/* ================= STATE ================= */
 let activeSignal   = null;
-let autoMonitorId  = null;
 let pendingTimer   = null;
-const MONITOR_EVERY_MS = 60 * 1000;   // 1 minute
-const AUTO_DELAY_MS    = 10 * 60 * 1000; // 10 minutes (auto recheck + execute)
+let autoMonitorId  = null;
 
-/* ==== Voice ==== */
-function speak(text) {
-  try {
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = 'bn-IN';
-    const voices = speechSynthesis.getVoices();
-    const femaleVoice = voices.find(v => v.lang === 'bn-IN' && (v.name || '').toLowerCase().includes("female"));
-    if (femaleVoice) utterance.voice = femaleVoice;
-    speechSynthesis.speak(utterance);
-  } catch {}
+/* ================= CONFIG =================
+  Uses your gold logic; BTC & USOIL copy gold-style with pair specific zones/tolerance.
+  Replace TwelveData API key if you have another one.
+*/
+const TD_API_KEY = "cd96961a49e242fe939a80866e70c57d"; // keep or replace with your key
+
+const CONFIG = {
+  XAUUSD: {
+    tv: "OANDA:XAUUSD",
+    fetch: async () => {
+      const res = await fetch(`https://api.twelvedata.com/price?symbol=XAU/USD&apikey=${TD_API_KEY}`);
+      const data = await res.json();
+      if (!data || !data.price) throw new Error("XAU price unavailable");
+      return parseFloat(data.price);
+    },
+    pivot: 3377.28,
+    bias: 3350.50,
+    tolerance: 0.5,
+    zones: (price) => {
+      const momentumSell = price < 3377.28;
+      const levelsSell = [3372,3370,3365,3360,3356,3351];
+      const levelsBuy  = [3381,3385,3389,3394];
+      return momentumSell ? levelsSell : levelsBuy;
+    },
+    tps: {tp1:5,tp2:10,tp3:15},
+    slGap:4,
+    digits:2
+  },
+  BTCUSD: {
+    tv: "BINANCE:BTCUSDT",
+    fetch: async () => {
+      const res = await fetch("https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT");
+      const data = await res.json();
+      if (!data || !data.price) throw new Error("BTC price unavailable");
+      return parseFloat(data.price);
+    },
+    pivot: 65000,
+    bias: 60000,
+    tolerance: 20,
+    zones: (price) => {
+      const step = 50;
+      const base = Math.round(price / step) * step;
+      const momentumSell = price < 65000;
+      const ups  = [base + step, base + 2*step, base + 3*step];
+      const downs = [base - step, base - 2*step, base - 3*step, base - 4*step];
+      return momentumSell ? downs : ups;
+    },
+    tps: {tp1:100,tp2:200,tp3:300},
+    slGap:80,
+    digits:2
+  },
+  USOIL: {
+    tv: "TVC:USOIL",
+    fetch: async () => {
+      // Robust WTI price fetch (Forex/CFD style)
+      // Try 1: TwelveData common WTI symbols
+      const trySymbols = ["WTICOUSD","WTI/USD","CL=F","USOIL"];
+      for (const sym of trySymbols) {
+        try {
+          const url = `https://api.twelvedata.com/price?symbol=${encodeURIComponent(sym)}&apikey=${TD_API_KEY}`;
+          const r = await fetch(url);
+          const d = await r.json();
+          // TwelveData returns { price: "xx.xx" } on success
+          if (d && d.price) {
+            // if it returns a string price, parse and return
+            return parseFloat(d.price);
+          }
+          // If response includes message about market closed, surface it as error to be handled above
+          if (d && (d.status === "error" || d.message)) {
+            // continue trying other symbols or fallback
+            console.warn("TwelveData message for", sym, d.message || d);
+          }
+        } catch(e) {
+          // try next symbol
+          console.warn("TwelveData fetch failed for", sym, e);
+        }
+      }
+
+      // Try fallback: Yahoo Finance (Crude Oil Futures CL=F)
+      try {
+        const y = await fetch("https://query1.finance.yahoo.com/v8/finance/chart/CL=F?interval=1m");
+        const jd = await y.json();
+        if (jd && jd.chart && jd.chart.result && jd.chart.result[0]) {
+          const meta = jd.chart.result[0].meta;
+          // If market state is CLOSED or REGULAR, we can still read regularMarketPrice
+          if (meta && typeof meta.regularMarketPrice === "number") {
+            // detect market closed
+            if (meta.marketState && meta.marketState.toUpperCase() === "CLOSED") {
+              // throw a specific error so caller can show "market closed"
+              const err = new Error("MARKET_CLOSED");
+              err.code = "MARKET_CLOSED";
+              throw err;
+            }
+            return parseFloat(meta.regularMarketPrice);
+          }
+        }
+      } catch(e) {
+        console.warn("Yahoo fallback failed", e);
+      }
+
+      // If all failed, throw so wrapper shows error
+      throw new Error("OIL price fetch failed");
+    },
+    pivot: 80,
+    bias: 78,
+    tolerance: 0.2,
+    zones: (price) => {
+      const step = 0.5;
+      const base = Math.round(price / step) * step;
+      const momentumSell = price < 80;
+      const ups   = [base + step, base + 2*step, base + 3*step];
+      const downs = [base - step, base - 2*step, base - 3*step, base - 4*step];
+      return momentumSell ? downs : ups;
+    },
+    tps: {tp1:0.5,tp2:1.0,tp3:1.5},
+    slGap:0.4,
+    digits:2
+  }
+};
+
+/* ================= AUDIO/TTS ================= */
+function speak(text){
+  try{
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'bn-IN';
+    const v = speechSynthesis.getVoices();
+    const fv = v.find(x=>x.lang==='bn-IN' && x.name && x.name.toLowerCase().includes('female'));
+    if(fv) u.voice = fv;
+    speechSynthesis.speak(u);
+  }catch(e){}
 }
-function playClick() { try { clickSound.play(); } catch {} }
+function playClick(){ try{ clickSound.play(); }catch(e){} }
 
-/* ==== TradingView Chart ==== */
-pairSelect.addEventListener("change", loadChart);
-function loadChart() {
-  const symbol = pairSelect.value;
-  let tvSymbol = "OANDA:XAUUSD";
-  if (symbol === "BTCUSD") tvSymbol = "BINANCE:BTCUSDT";
-  if (symbol === "USOIL")  tvSymbol = "TVC:USOIL"; // TradingView symbol for WTI
-
-  tvChart.src = `https://s.tradingview.com/widgetembed/?frameElementId=tvChart&symbol=${encodeURIComponent(tvSymbol)}&interval=5&theme=dark&style=1&timezone=Asia/Kolkata&withdateranges=1&studies=[]&toolbarbg=rgba(0,0,0,1)&hide_side_toolbar=0&allow_symbol_change=1&saveimage=1&details=1&hotlist=1&calendar=1&drawings_access=%7B%22type%22%3A%22black%22%7D`;
+/* ================= CHART LOAD ================= */
+pairSelect.addEventListener("change", () => { loadChart(); renderSignalUpper("🔄 PAIR CHANGED. WAITING FOR SIGNAL..."); });
+function loadChart(){
+  const pair = pairSelect.value;
+  const tv = CONFIG[pair].tv;
+  tvChart.src = `https://s.tradingview.com/widgetembed/?frameElementId=tvChart&symbol=${encodeURIComponent(tv)}&interval=5&theme=dark&style=1&timezone=Asia/Kolkata&withdateranges=1&studies=[]&toolbarbg=rgba(0,0,0,1)&hide_side_toolbar=0&allow_symbol_change=1&saveimage=1&details=1&hotlist=1&calendar=1&drawings_access=%7B%22type%22%3A%22black%22%7D`;
 }
 loadChart();
 
-/* ==== Market Calendar ==== */
-function isMarketClosed(pair) {
-  const day = new Date().getDay(); // 0=Sun, 6=Sat
-  if (pair === "XAUUSD" || pair === "USOIL") {
-    return (day === 0 || day === 6); // weekends closed
-  }
-  if (pair === "BTCUSD") return false; // BTC 24/7
-  return false;
+/* ================= HELPERS ================= */
+function fmt(n,d=2){ return Number(n).toFixed(d) }
+function renderSignalUpper(text){ signalBox.innerHTML = String(text).toUpperCase().replace(/\n/g,"<br>") }
+function near(a,b,tol){ return Math.abs(a-b) <= tol }
+function renderLevelsClickable(levels,digits=2){
+  if(!levels||!levels.length) return "";
+  return `<div class="levels">LEVELS: ${levels.map(l => `<a onclick="tapLevel(${l})">${fmt(l,digits)}</a>`).join(" ")}</div>`;
 }
 
-/* ==== Live Price ==== */
-const TD_API_KEY = "cd96961a49e242fe939a80866e70c57d"; // <-- keep/replace with your key
-
-async function fetchLivePrice(pair) {
-  try {
-    if (pair === "BTCUSD") {
-      const res  = await fetch("https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT");
-      const data = await res.json();
-      return parseFloat(data.price);
-    } else if (pair === "XAUUSD") {
-      const res  = await fetch(`https://api.twelvedata.com/price?symbol=XAU/USD&apikey=${TD_API_KEY}`);
-      const data = await res.json();
-      if (!data || !data.price) throw new Error("TwelveData XAU error");
-      return parseFloat(data.price);
-    } else if (pair === "USOIL") {
-      // TwelveData supports WTI with symbol "CL=F" (futures) or "WTI/USD" on some feeds.
-      // We'll try CL=F first. If your plan doesn't allow, switch to "WTI/USD".
-      const res  = await fetch(`https://api.twelvedata.com/price?symbol=CL=F&apikey=${TD_API_KEY}`);
-      const data = await res.json();
-      if (!data || !data.price) throw new Error("TwelveData OIL error");
-      return parseFloat(data.price);
+/* ================= MANUAL TAP ================= */
+async function tapLevel(level){
+  if(activeSignal){ renderSignalUpper("⏳ WAIT: A SIGNAL IS ALREADY ACTIVE!"); speak("Wait, a signal is already active"); return; }
+  const pair = pairSelect.value;
+  const cfg  = CONFIG[pair];
+  let price;
+  try{ price = await cfg.fetch(); } catch(e){
+    if (e && e.code === "MARKET_CLOSED") {
+      renderSignalUpper(`⚠️ ${pair} MARKET IS CLOSED TODAY.`);
+      speak(`${pair} market is closed today`);
+      return;
     }
-  } catch (error) {
-    signalBox.innerHTML = "❌ ERROR FETCHING LIVE PRICE!";
-    console.error(error);
-    return null;
-  }
-}
-
-/* ==== Helper: Render ==== */
-function renderSignalUpper(text) {
-  signalBox.innerHTML = text.toUpperCase().replace(/\n/g, "<br>");
-}
-function renderLevelsClickable(levels=[]) {
-  if (!levels.length) return "";
-  return `<div class="levels"><span class="muted">Tap level to execute:</span><br>${
-    levels.map(l => `<span data-lvl="${l}" title="Tap to execute at level">${l}</span>`).join(" ")
-  }</div>`;
-}
-signalBox.addEventListener("click", (e) => {
-  const span = e.target.closest("span[data-lvl]");
-  if (!span) return;
-  const lvl = parseFloat(span.getAttribute("data-lvl"));
-  tapExecuteAtLevel(lvl);
-});
-
-/* ==== GOLD (same style as your original, zones + momentum) ==== */
-function getGoldSetup(price) {
-  const dailyBias    = price > 3350.5 ? "BUY" : "SELL";
-  const momentumSell = price < 3377.28;
-  const momentumBuy  = price > 3377.28;
-  const sellZones = [3372, 3370, 3365, 3360, 3356, 3351];
-  const buyZones  = [3381, 3385, 3389, 3394];
-  const entryZones = momentumSell ? sellZones : buyZones;
-
-  const inZone = entryZones.some(level => Math.abs(price - level) <= 0.5);
-  const direction = momentumSell ? "SELL" : "BUY";
-
-  const entry = parseFloat(price.toFixed(2));
-  const tp1   = direction === "BUY" ? (entry + 5).toFixed(2)  : (entry - 5).toFixed(2);
-  const tp2   = direction === "BUY" ? (entry + 10).toFixed(2) : (entry - 10).toFixed(2);
-  const tp3   = direction === "BUY" ? (entry + 15).toFixed(2) : (entry - 15).toFixed(2);
-  const sl    = direction === "BUY" ? (entry - 4).toFixed(2)  : (entry + 4).toFixed(2);
-
-  return { dailyBias, momentumBuy, momentumSell, entryZones, inZone, direction, entry, tp1, tp2, tp3, sl };
-}
-
-/* ==== BTC (same style as GOLD, but dynamic zones around pivot so random feel chole jay) ==== */
-function getBTCSetup(price) {
-  // Pivot = nearest 1000 + 500 (e.g., 65320 -> 65500)
-  const nearestThousand = Math.floor(price / 1000) * 1000;
-  const pivot = nearestThousand + 500;
-
-  const momentumSell = price < pivot;
-  const momentumBuy  = price >= pivot;
-  const direction    = momentumSell ? "SELL" : "BUY";
-
-  // Dynamic zones: ±200, ±400, ±600, ±800 from pivot
-  const sellZones = [pivot - 200, pivot - 400, pivot - 600, pivot - 800];
-  const buyZones  = [pivot + 200, pivot + 400, pivot + 600, pivot + 800];
-  const entryZones = momentumSell ? sellZones : buyZones;
-
-  // BTC band wider
-  const inZone = entryZones.some(level => Math.abs(price - level) <= 20);
-
-  const entry = parseFloat(price.toFixed(2));
-  const tp1   = direction === "BUY" ? (entry + 100).toFixed(2) : (entry - 100).toFixed(2);
-  const tp2   = direction === "BUY" ? (entry + 200).toFixed(2) : (entry - 200).toFixed(2);
-  const tp3   = direction === "BUY" ? (entry + 300).toFixed(2) : (entry - 300).toFixed(2);
-  const sl    = direction === "BUY" ? (entry - 80).toFixed(2)  : (entry + 80).toFixed(2);
-
-  return { pivot, momentumBuy, momentumSell, entryZones, inZone, direction, entry, tp1, tp2, tp3, sl };
-}
-
-/* ==== US OIL (same pattern as GOLD; dynamic zones around round dollars) ==== */
-function getOilSetup(price) {
-  // Pivot = nearest whole + 0.50 (e.g., 82.34 -> 82.50)
-  const nearestWhole = Math.floor(price);
-  const pivot = nearestWhole + 0.5;
-
-  const momentumSell = price < pivot;
-  const momentumBuy  = price >= pivot;
-  const direction    = momentumSell ? "SELL" : "BUY";
-
-  // Zones every 0.50 / 1.00 around pivot
-  const sellZones = [pivot - 0.5, pivot - 1.0, pivot - 1.5, pivot - 2.0];
-  const buyZones  = [pivot + 0.5, pivot + 1.0, pivot + 1.5, pivot + 2.0];
-  const entryZones = momentumSell ? sellZones : buyZones;
-
-  const inZone = entryZones.some(level => Math.abs(price - level) <= 0.08);
-
-  const entry = parseFloat(price.toFixed(2));
-  const tp1   = direction === "BUY" ? (entry + 0.20).toFixed(2) : (entry - 0.20).toFixed(2);
-  const tp2   = direction === "BUY" ? (entry + 0.40).toFixed(2) : (entry - 0.40).toFixed(2);
-  const tp3   = direction === "BUY" ? (entry + 0.60).toFixed(2) : (entry - 0.60).toFixed(2);
-  const sl    = direction === "BUY" ? (entry - 0.18).toFixed(2) : (entry + 0.18).toFixed(2);
-
-  return { pivot, momentumBuy, momentumSell, entryZones, inZone, direction, entry, tp1, tp2, tp3, sl };
-}
-
-/* ==== Manual Tap Execute (common) ==== */
-async function tapExecuteAtLevel(level) {
-  const pair  = pairSelect.value;
-  const price = await fetchLivePrice(pair);
-  if (price == null) return;
-
-  if (isMarketClosed(pair)) {
-    renderSignalUpper(`⚠️ ${pair} MARKET IS CLOSED TODAY.`);
-    speak(`${pair} market is closed today`);
+    renderSignalUpper("❌ ERROR FETCHING LIVE PRICE!");
+    console.error(e);
     return;
   }
-
-  const time = new Date().toLocaleTimeString("en-IN", { hour12: true });
-  // Direction: simple tap idea — if current <= level → BUY, else SELL
-  const direction = price <= level ? "BUY" : "SELL";
-  const entry = level.toFixed(2);
-
-  // TP/SL distances depend on pair
-  let tp1, tp2, tp3, sl;
-  if (pair === "XAUUSD") {
-    tp1 = direction === "BUY" ? (level + 5).toFixed(2)  : (level - 5).toFixed(2);
-    tp2 = direction === "BUY" ? (level + 10).toFixed(2) : (level - 10).toFixed(2);
-    tp3 = direction === "BUY" ? (level + 15).toFixed(2) : (level - 15).toFixed(2);
-    sl  = direction === "BUY" ? (level - 4).toFixed(2)  : (level + 4).toFixed(2);
-  } else if (pair === "BTCUSD") {
-    tp1 = direction === "BUY" ? (level + 100).toFixed(2) : (level - 100).toFixed(2);
-    tp2 = direction === "BUY" ? (level + 200).toFixed(2) : (level - 200).toFixed(2);
-    tp3 = direction === "BUY" ? (level + 300).toFixed(2) : (level - 300).toFixed(2);
-    sl  = direction === "BUY" ? (level - 80).toFixed(2)  : (level + 80).toFixed(2);
-  } else {
-    // USOIL
-    tp1 = direction === "BUY" ? (level + 0.20).toFixed(2) : (level - 0.20).toFixed(2);
-    tp2 = direction === "BUY" ? (level + 0.40).toFixed(2) : (level - 0.40).toFixed(2);
-    tp3 = direction === "BUY" ? (level + 0.60).toFixed(2) : (level - 0.60).toFixed(2);
-    sl  = direction === "BUY" ? (level - 0.18).toFixed(2) : (level + 0.18).toFixed(2);
-  }
-
-  activeSignal = { pair, direction, entry, tp1, tp2, tp3, sl, time, mode: "MANUAL-TAP", status: "RUNNING" };
-
-  const text = 
+  const direction = (price < cfg.pivot) ? "SELL" : "BUY";
+  const entry = fmt(level,cfg.digits);
+  const tp1 = direction==="BUY" ? fmt(level+cfg.tps.tp1,cfg.digits) : fmt(level-cfg.tps.tp1,cfg.digits);
+  const tp2 = direction==="BUY" ? fmt(level+cfg.tps.tp2,cfg.digits) : fmt(level-cfg.tps.tp2,cfg.digits);
+  const tp3 = direction==="BUY" ? fmt(level+cfg.tps.tp3,cfg.digits) : fmt(level-cfg.tps.tp3,cfg.digits);
+  const sl  = direction==="BUY" ? fmt(level-cfg.slGap,cfg.digits) : fmt(level+cfg.slGap,cfg.digits);
+  const time= new Date().toLocaleTimeString("en-IN",{hour12:true});
+  activeSignal = {pair,direction,entry,tp1,tp2,tp3,sl,time,mode:"MANUAL-TAP",status:"RUNNING"};
+  const txt =
 `📊 ${pair}: ${direction}
 ⚙️ MODE: MANUAL-TAP
 🟡 ENTRY: ${entry}
 🎯 TP1: ${tp1} | TP2: ${tp2} | TP3: ${tp3}
 🛑 SL: ${sl}
-📍 LIVE PRICE: ${price.toFixed(2)}
+📍 LIVE PRICE: ${fmt(price,cfg.digits)}
 📈 TRADE IS LIVE...`;
-  renderSignalUpper(text);
+  renderSignalUpper(txt);
   speak(`${pair} ${direction}. Entry ${entry}. TP1 ${tp1}, TP2 ${tp2}, SL ${sl}`);
 }
 
-/* ==== Manual Button Generate (Gold-like logic shared to BTC & OIL) ==== */
-async function generateSignal() {
-  const pair = pairSelect.value;
-  const time = new Date().toLocaleTimeString("en-IN", { hour12: true });
+/* ================= FETCH LIVE PRICE (wrapper) ================= */
+async function fetchLivePrice(pair){
+  try{ return await CONFIG[pair].fetch(); }
+  catch(e){
+    if (e && e.code === "MARKET_CLOSED") {
+      renderSignalUpper(`⚠️ ${pair} MARKET IS CLOSED TODAY.`);
+      return null;
+    }
+    renderSignalUpper("❌ ERROR FETCHING LIVE PRICE!"); console.error(e); return null;
+  }
+}
 
-  if (activeSignal) {
-    renderSignalUpper("⏳ WAIT: A SIGNAL IS ALREADY ACTIVE!");
-    speak("Wait, a signal is already active");
-    return;
-  }
-  if (isMarketClosed(pair)) {
-    renderSignalUpper(`⚠️ ${pair} MARKET IS CLOSED TODAY.`);
-    speak(`${pair} market is closed today`);
-    return;
-  }
+/* ================= GET SETUP (gold-style) ================= */
+function getSetup(pair,price){
+  const cfg = CONFIG[pair];
+  const momentumSell = price < cfg.pivot;
+  const direction = momentumSell ? "SELL" : "BUY";
+  const entryZones = cfg.zones(price);
+  const inZone = entryZones.some(l => near(price, l, cfg.tolerance));
+  const nearest = entryZones.slice().sort((a,b)=>Math.abs(price-a)-Math.abs(price-b))[0];
+  const entry = fmt(nearest??price,cfg.digits);
+  const tp1 = direction==="BUY" ? fmt(Number(entry)+cfg.tps.tp1,cfg.digits) : fmt(Number(entry)-cfg.tps.tp1,cfg.digits);
+  const tp2 = direction==="BUY" ? fmt(Number(entry)+cfg.tps.tp2,cfg.digits) : fmt(Number(entry)-cfg.tps.tp2,cfg.digits);
+  const tp3 = direction==="BUY" ? fmt(Number(entry)+cfg.tps.tp3,cfg.digits) : fmt(Number(entry)-cfg.tps.tp3,cfg.digits);
+  const sl  = direction==="BUY" ? fmt(Number(entry)-cfg.slGap,cfg.digits) : fmt(Number(entry)+cfg.slGap,cfg.digits);
+  return {direction,entryZones,inZone,entry,tp1,tp2,tp3,sl};
+}
+
+/* ================= MANUAL GENERATE BUTTON ================= */
+async function generateSignal(){
+  const now = new Date();
+  const pair = pairSelect.value;
+  const day  = now.getDay();
+  const time = now.toLocaleTimeString("en-IN",{hour12:true});
+  if((pair==="XAUUSD") && (day===6||day===0)){ renderSignalUpper("⚠️ GOLD MARKET IS CLOSED TODAY."); speak("Gold market is closed today"); return; }
+  if(activeSignal){ renderSignalUpper("⏳ WAIT: A SIGNAL IS ALREADY ACTIVE!"); speak("Wait, a signal is already active"); return; }
 
   const price = await fetchLivePrice(pair);
-  if (!price) return;
-
-  let s, levelsText = "";
-  if (pair === "XAUUSD") {
-    s = getGoldSetup(price);
-    levelsText = renderLevelsClickable(s.entryZones);
-    if (!s.inZone) {
-      const msg = 
+  if(!price) return;
+  const s = getSetup(pair,price);
+  if(!s.inZone){
+    const msg =
 `❌ NO VALID TRADE SETUP NOW.
 PRICE NOT NEAR ANY KEY ZONE.
-CURRENT: ${price.toFixed(2)}
-${levelsText}`;
-      signalBox.innerHTML = msg.toUpperCase().replace(/\n/g, "<br>");
-      speak("No trade now. Price not near level zone.");
-      return;
-    }
-  } else if (pair === "BTCUSD") {
-    s = getBTCSetup(price);
-    levelsText = renderLevelsClickable(s.entryZones);
-    if (!s.inZone) {
-      const msg = 
-`❌ NO VALID TRADE SETUP NOW.
-PRICE NOT NEAR ANY KEY ZONE.
-CURRENT: ${price.toFixed(2)}
-${levelsText}`;
-      signalBox.innerHTML = msg.toUpperCase().replace(/\n/g, "<br>");
-      speak("No trade now. Price not near level zone.");
-      return;
-    }
-  } else { // USOIL
-    s = getOilSetup(price);
-    levelsText = renderLevelsClickable(s.entryZones);
-    if (!s.inZone) {
-      const msg = 
-`❌ NO VALID TRADE SETUP NOW.
-PRICE NOT NEAR ANY KEY ZONE.
-CURRENT: ${price.toFixed(2)}
-${levelsText}`;
-      signalBox.innerHTML = msg.toUpperCase().replace(/\n/g, "<br>");
-      speak("No trade now. Price not near level zone.");
-      return;
-    }
+CURRENT: ${fmt(price, CONFIG[pair].digits)}
+${renderLevelsClickable(s.entryZones, CONFIG[pair].digits)}`;
+    signalBox.innerHTML = msg.toUpperCase().replace(/\n/g,"<br>");
+    speak("No trade now. Price not near level zone.");
+    return;
   }
 
-  activeSignal = { pair, direction: s.direction, entry: s.entry, tp1: s.tp1, tp2: s.tp2, tp3: s.tp3, sl: s.sl, time, mode: "INTRADAY", status: "RUNNING" };
+  activeSignal = {pair,direction:s.direction,entry:s.entry,tp1:s.tp1,tp2:s.tp2,tp3:s.tp3,sl:s.sl,time,mode:"INTRADAY",status:"RUNNING"};
   const text =
 `📊 ${pair}: ${s.direction}
 ⚙️ MODE: INTRADAY
 🟡 ENTRY: ${s.entry}
 🎯 TP1: ${s.tp1} | TP2: ${s.tp2} | TP3: ${s.tp3}
 🛑 SL: ${s.sl}
-📍 LIVE PRICE: ${price.toFixed(2)}
+📍 LIVE PRICE: ${fmt(price, CONFIG[pair].digits)}
 📈 TRADE IS LIVE...`;
   renderSignalUpper(text);
   speak(`${pair} ${s.direction}. Entry ${s.entry}. TP1 ${s.tp1}, TP2 ${s.tp2}, SL ${s.sl}`);
 }
 
-/* ==== Auto Monitor (real-time) ==== */
-async function autoMonitorTick() {
-  if (activeSignal) return; // don't spawn another
+/* ================= AUTO MONITOR (1MIN) + 10MIN CONFIRM ================= */
+const MONITOR_EVERY_MS = 60_000;
+const AUTO_DELAY_MS = 10 * 60_000;
+
+async function autoMonitorTick(){
+  if(activeSignal) return;
   const pair = pairSelect.value;
-  if (isMarketClosed(pair)) {
-    renderSignalUpper(`⚠️ ${pair} MARKET IS CLOSED TODAY.`);
-    return;
-  }
+  const day = new Date().getDay();
+  // weekend close for GOLD and USOIL
+  if((pair==="XAUUSD" || pair==="USOIL") && (day===6||day===0)){ renderSignalUpper(`⚠️ ${pair} MARKET IS CLOSED TODAY.`); return; }
+  let price = null;
+  try{ price = await fetchLivePrice(pair); } catch(e){}
+  if(!price) return;
+  const s = getSetup(pair,price);
+  const baseHeader = `🛰️ AUTO MONITORING ACTIVE — PAIR: ${pair} — PRICE: ${fmt(price, CONFIG[pair].digits)}`;
 
-  const price = await fetchLivePrice(pair);
-  if (!price) return;
-
-  let s;
-  if (pair === "XAUUSD") s = getGoldSetup(price);
-  else if (pair === "BTCUSD") s = getBTCSetup(price);
-  else s = getOilSetup(price);
-
-  const baseHeader = `🛰️ AUTO MONITORING — PAIR: ${pair} — PRICE: ${price.toFixed(2)}`;
-  if (!s.inZone) {
-    const view =
-`${baseHeader}
+  if(!s.inZone){
+    const view = `${baseHeader}
 NO VALID SETUP NEAR ZONES.
-${renderLevelsClickable(s.entryZones)}`;
-    signalBox.innerHTML = view.toUpperCase().replace(/\n/g, "<br>");
+${renderLevelsClickable(s.entryZones, CONFIG[pair].digits)}`;
+    signalBox.innerHTML = view.toUpperCase().replace(/\n/g,"<br>");
     return;
   }
 
-  // Found potential setup → mark pending & schedule execute after 10 minutes
-  const nowStr = new Date().toLocaleTimeString("en-IN", { hour12: true });
-  const pendingText =
-`${baseHeader}
+  const nowStr = new Date().toLocaleTimeString("en-IN",{hour12:true});
+  const pendingText = `${baseHeader}
 FOUND SETUP NEAR LEVEL — MARKED AS PENDING
 DIRECTION: ${s.direction}
 PLANNED ENTRY: ${s.entry}
@@ -421,99 +347,87 @@ DETECTED AT: ${nowStr}`;
   renderSignalUpper(pendingText);
   speak("Potential setup found. Will execute in ten minutes if still valid.");
 
-  if (pendingTimer) { clearTimeout(pendingTimer); pendingTimer = null; }
-  pendingTimer = setTimeout(async () => {
-    if (activeSignal) return;
-    const rePrice = await fetchLivePrice(pair);
-    if (!rePrice) return;
+  if(pendingTimer){ clearTimeout(pendingTimer); pendingTimer = null; }
 
-    let re;
-    if (pair === "XAUUSD") re = getGoldSetup(rePrice);
-    else if (pair === "BTCUSD") re = getBTCSetup(rePrice);
-    else re = getOilSetup(rePrice);
-
-    if (re.inZone) {
-      const time = new Date().toLocaleTimeString("en-IN", { hour12: true });
-      activeSignal = { pair, direction: re.direction, entry: re.entry, tp1: re.tp1, tp2: re.tp2, tp3: re.tp3, sl: re.sl, time, mode: "AUTO", status: "RUNNING" };
-      const execText =
-`📊 ${pair}: ${re.direction}
+  pendingTimer = setTimeout(async ()=>{
+    if(activeSignal) return;
+    let rePrice = null;
+    try{ rePrice = await fetchLivePrice(pair); } catch(e){}
+    if(!rePrice) return;
+    const re = getSetup(pair,rePrice);
+    if(re.inZone){
+      const time = new Date().toLocaleTimeString("en-IN",{hour12:true});
+      activeSignal = {pair,direction:re.direction,entry:re.entry,tp1:re.tp1,tp2:re.tp2,tp3:re.tp3,sl:re.sl,time,mode:"AUTO",status:"RUNNING"};
+      const execText = `📊 ${pair}: ${re.direction}
 ⚙️ MODE: AUTO
 🟡 ENTRY: ${re.entry}
 🎯 TP1: ${re.tp1} | TP2: ${re.tp2} | TP3: ${re.tp3}
 🛑 SL: ${re.sl}
-📍 LIVE PRICE: ${rePrice.toFixed(2)}
+📍 LIVE PRICE: ${fmt(rePrice, CONFIG[pair].digits)}
 ✅ AUTO-EXECUTED AFTER 10 MINUTES`;
       renderSignalUpper(execText);
       speak(`${pair} ${re.direction}. Entry ${re.entry}. TP1 ${re.tp1}, TP2 ${re.tp2}, SL ${re.sl}`);
     } else {
-      const cancelText =
-`${baseHeader}
+      const cancelText = `${baseHeader}
 SETUP INVALID AFTER 10 MINUTES — AUTO EXECUTION CANCELLED
-${renderLevelsClickable(re.entryZones)}`;
-      signalBox.innerHTML = cancelText.toUpperCase().replace(/\n/g, "<br>");
+${renderLevelsClickable(re.entryZones, CONFIG[pair].digits)}`;
+      signalBox.innerHTML = cancelText.toUpperCase().replace(/\n/g,"<br>");
       speak("Setup cancelled after recheck.");
     }
     pendingTimer = null;
   }, AUTO_DELAY_MS);
 }
 
-/* ==== Mode Switching ==== */
+/* ================= MODE SWITCH ================= */
 modeSelect.addEventListener("change", handleModeChange);
-function handleModeChange() {
+function handleModeChange(){
   const mode = modeSelect.value;
-  if (pendingTimer) { clearTimeout(pendingTimer); pendingTimer = null; }
-  if (autoMonitorId) { clearInterval(autoMonitorId); autoMonitorId = null; }
-
-  if (mode === "AUTO") {
+  if(pendingTimer){ clearTimeout(pendingTimer); pendingTimer = null; }
+  if(autoMonitorId){ clearInterval(autoMonitorId); autoMonitorId = null; }
+  if(mode === "AUTO"){
     renderSignalUpper("🛰️ AUTO MODE ON — MONITORING LIVE PRICE...");
     autoMonitorId = setInterval(autoMonitorTick, MONITOR_EVERY_MS);
-    autoMonitorTick(); // run once immediately
+    autoMonitorTick();
   } else {
     renderSignalUpper("🖐️ MANUAL MODE — TAP A LEVEL OR PRESS GENERATE SIGNAL");
   }
 }
 handleModeChange();
 
-/* ==== Reset ==== */
-function resetSignal() {
-  if (pendingTimer) { clearTimeout(pendingTimer); pendingTimer = null; }
-  if (autoMonitorId && modeSelect.value === "AUTO") {
-    clearInterval(autoMonitorId);
-    autoMonitorId = setInterval(autoMonitorTick, MONITOR_EVERY_MS); // keep auto mode alive
-  }
+/* ================= RESET ================= */
+function resetSignal(){
+  if(pendingTimer){ clearTimeout(pendingTimer); pendingTimer = null; }
   activeSignal = null;
   renderSignalUpper("🔄 RESET DONE. WAITING FOR SIGNAL...");
   speak("Reset done");
 }
 
-/* ==== Starfield animation (unchanged) ==== */
+/* ================= STARFIELD ================= */
 const canvas = document.getElementById("starfield");
 const ctx = canvas.getContext("2d");
 let stars = [];
-function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+function resizeCanvas(){ canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
 resizeCanvas();
-for (let i = 0; i < 200; i++) {
-  stars.push({ x: Math.random() * canvas.width, y: Math.random() * canvas.height, size: Math.random() * 2, speed: Math.random() * 1 });
-}
-function animateStars() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+for(let i=0;i<200;i++){ stars.push({x:Math.random()*canvas.width,y:Math.random()*canvas.height,size:Math.random()*2,speed:Math.random()*1}) }
+function animateStars(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
   ctx.fillStyle = "#00ffe7";
-  stars.forEach(star => {
+  stars.forEach(star=>{
     star.y += star.speed;
-    if (star.y > canvas.height) star.y = 0;
+    if(star.y>canvas.height) star.y = 0;
     ctx.beginPath();
-    ctx.arc(star.x, star.y, star.size, 0, 2 * Math.PI);
+    ctx.arc(star.x,star.y,star.size,0,2*Math.PI);
     ctx.fill();
   });
   requestAnimationFrame(animateStars);
 }
 animateStars();
 
-/* ==== Clock ==== */
-setInterval(() => {
+/* ================= CLOCK ================= */
+setInterval(()=>{
   const now = new Date();
-  timeDisplay.innerText = "⏰ Current Indian Time: " + now.toLocaleTimeString("en-IN");
-}, 1000);
+  timeDisplay.innerText = ("⏰ CURRENT INDIAN TIME: " + now.toLocaleTimeString("en-IN")).toUpperCase();
+},1000);
 </script>
 </body>
 </html>
