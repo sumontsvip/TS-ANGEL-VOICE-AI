@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>TS Angel Forex AI (TEST)  </title>
+  <title>TS Angel Forex AI</title>
   <style>
     html, body {
       margin: 0;
@@ -22,9 +22,8 @@
     }
     body { text-align: center; padding: 20px; }
     h1 { color: #00ffe7; animation: neon-flicker 1.5s infinite; }
-    #timeDisplay {
-      font-size: 1.2rem; color: #ffcc00; animation: neon-flicker 2s infinite;
-    }
+    #timeDisplay { font-size: 1.2rem; color: #ffcc00; animation: neon-flicker 2s infinite; }
+
     select, button {
       padding: 12px 20px; margin: 10px; font-size: 1rem;
       border-radius: 5px; background-color: #111; color: #00ffea;
@@ -40,15 +39,23 @@
       font-size: 1.1rem; color: #ffcc00; animation: glow-pulse 1.5s infinite;
     }
     .watermark { margin-top: 40px; font-size: 1.2rem; color: #00ffe7; animation: neon-flicker 2s infinite; }
+
+    .levels { margin-top: 10px; }
+    .levels span {
+      display: inline-block; margin: 6px 6px; padding: 6px 10px; border: 1px solid #00ffea;
+      border-radius: 6px; cursor: pointer; user-select: none;
+    }
+    .levels span:hover { background:#00ffea; color:#000; }
+    .muted { color:#8fe; font-size: 0.95rem; }
+
     @keyframes neon-flicker {
       0%, 100% { text-shadow: 0 0 5px #0ff, 0 0 10px #0ff, 0 0 20px #0ff; }
-      50%      { text-shadow: 0 0 2px #0ff, 0 0 5px #0ff; }
+      50% { text-shadow: 0 0 2px #0ff, 0 0 5px #0ff; }
     }
     @keyframes glow-pulse {
       0%, 100% { box-shadow: 0 0 10px #00ffe7, 0 0 20px #00ffe7; }
-      50%      { box-shadow: 0 0 5px #00ffe7, 0 0 10px #00ffe7; }
+      50% { box-shadow: 0 0 5px #00ffe7, 0 0 10px #00ffe7; }
     }
-    .toolbar { margin-top: 10px; }
   </style>
 </head>
 <body>
@@ -57,46 +64,42 @@
 <h1>🚀 TS Angel Forex AI (BTC • GOLD • US OIL)</h1>
 <p id="timeDisplay">⏰ Current Indian Time: </p>
 
-<div class="toolbar">
-  <select id="pairSelect">
-    <option value="BTCUSD">BTCUSD</option>
-    <option value="XAUUSD">XAUUSD</option>
-    <option value="USOIL">USOIL (WTI)</option>
-  </select>
+<!-- Controls (unchanged layout spirit, just added mode & reset as requested earlier) -->
+<select id="pairSelect">
+  <option value="BTCUSD">BTCUSD</option>
+  <option value="XAUUSD">XAUUSD</option>
+  <option value="USOIL">USOIL</option>
+</select>
 
-  <select id="modeSelect" title="Manual / Auto">
-    <option value="MANUAL">MANUAL</option>
-    <option value="AUTO">AUTO</option>
-  </select>
+<select id="modeSelect" title="Auto or Manual">
+  <option value="MANUAL">MANUAL</option>
+  <option value="AUTO">AUTO</option>
+</select>
 
-  <button onclick="playClick(); generateSignal()">📡 Generate Signal</button>
-  <button onclick="playClick(); resetSignal()">♻️ Reset</button>
-</div>
+<button onclick="playClick(); generateSignal()">📡 Generate Signal</button>
+<button onclick="resetSignal()">♻️ Reset</button>
 
 <div class="signal-box" id="signalBox">🔍 Waiting for signal...</div>
 <iframe id="tvChart"></iframe>
+
 <div class="watermark">💡 Created by Trader Sumon</div>
 <audio id="clickSound" src="https://assets.mixkit.co/sfx/preview/mixkit-game-click-1114.mp3"></audio>
 
 <script>
-/* ==== Elements ==== */
-const pairSelect   = document.getElementById("pairSelect");
-const tvChart      = document.getElementById("tvChart");
-const signalBox    = document.getElementById("signalBox");
-const timeDisplay  = document.getElementById("timeDisplay");
-const clickSound   = document.getElementById("clickSound");
-const modeSelect   = document.getElementById("modeSelect");
+/* ==== DOM ==== */
+const pairSelect  = document.getElementById("pairSelect");
+const modeSelect  = document.getElementById("modeSelect");
+const tvChart     = document.getElementById("tvChart");
+const signalBox   = document.getElementById("signalBox");
+const timeDisplay = document.getElementById("timeDisplay");
+const clickSound  = document.getElementById("clickSound");
 
+/* ==== State ==== */
 let activeSignal   = null;
-let pendingTimer   = null;
 let autoMonitorId  = null;
-
-const MONITOR_EVERY_MS = 60_000; // 1 minute
-const AUTO_DELAY_MS    = 10 * 60_000; // 10 minutes
-
-/* ==== API KEYS (EDIT THESE) ==== */
-const GOLD_API_KEY = "cd96961a49e242fe939a80866e70c57d"; // already in your code
-const OIL_API_KEY  = "PUT_YOUR_TWELVEDATA_KEY_HERE";      // <-- add your key
+let pendingTimer   = null;
+const MONITOR_EVERY_MS = 60 * 1000;   // 1 minute
+const AUTO_DELAY_MS    = 10 * 60 * 1000; // 10 minutes (auto recheck + execute)
 
 /* ==== Voice ==== */
 function speak(text) {
@@ -104,7 +107,7 @@ function speak(text) {
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = 'bn-IN';
     const voices = speechSynthesis.getVoices();
-    const femaleVoice = voices.find(v => v.lang === 'bn-IN' && v.name?.toLowerCase().includes("female"));
+    const femaleVoice = voices.find(v => v.lang === 'bn-IN' && (v.name || '').toLowerCase().includes("female"));
     if (femaleVoice) utterance.voice = femaleVoice;
     speechSynthesis.speak(utterance);
   } catch {}
@@ -114,31 +117,62 @@ function playClick() { try { clickSound.play(); } catch {} }
 /* ==== TradingView Chart ==== */
 pairSelect.addEventListener("change", loadChart);
 function loadChart() {
-  const symbol   = pairSelect.value;
-  let tvSymbol;
+  const symbol = pairSelect.value;
+  let tvSymbol = "OANDA:XAUUSD";
   if (symbol === "BTCUSD") tvSymbol = "BINANCE:BTCUSDT";
-  else if (symbol === "XAUUSD") tvSymbol = "OANDA:XAUUSD";
-  else tvSymbol = "TVC:USOIL"; // WTI Crude on TradingView
+  if (symbol === "USOIL")  tvSymbol = "TVC:USOIL"; // TradingView symbol for WTI
 
-  tvChart.src = `https://s.tradingview.com/widgetembed/?frameElementId=tvChart&symbol=${tvSymbol}&interval=5&theme=dark&style=1&timezone=Asia/Kolkata&withdateranges=1&studies=[]&toolbarbg=rgba(0,0,0,1)&hide_side_toolbar=0&allow_symbol_change=1&saveimage=1&details=1&hotlist=1&calendar=1&drawings_access=%7B%22type%22%3A%22black%22%7D`;
+  tvChart.src = `https://s.tradingview.com/widgetembed/?frameElementId=tvChart&symbol=${encodeURIComponent(tvSymbol)}&interval=5&theme=dark&style=1&timezone=Asia/Kolkata&withdateranges=1&studies=[]&toolbarbg=rgba(0,0,0,1)&hide_side_toolbar=0&allow_symbol_change=1&saveimage=1&details=1&hotlist=1&calendar=1&drawings_access=%7B%22type%22%3A%22black%22%7D`;
 }
 loadChart();
 
-/* ==== Helpers ==== */
-function isWeekendClosed(pair) {
-  // Simple weekend close for GOLD & OIL (Sat=6, Sun=0)
-  const day = new Date().getDay();
-  if ((pair === "XAUUSD" || pair === "USOIL") && (day === 6 || day === 0)) return true;
+/* ==== Market Calendar ==== */
+function isMarketClosed(pair) {
+  const day = new Date().getDay(); // 0=Sun, 6=Sat
+  if (pair === "XAUUSD" || pair === "USOIL") {
+    return (day === 0 || day === 6); // weekends closed
+  }
+  if (pair === "BTCUSD") return false; // BTC 24/7
   return false;
 }
 
+/* ==== Live Price ==== */
+const TD_API_KEY = "cd96961a49e242fe939a80866e70c57d"; // <-- keep/replace with your key
+
+async function fetchLivePrice(pair) {
+  try {
+    if (pair === "BTCUSD") {
+      const res  = await fetch("https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT");
+      const data = await res.json();
+      return parseFloat(data.price);
+    } else if (pair === "XAUUSD") {
+      const res  = await fetch(`https://api.twelvedata.com/price?symbol=XAU/USD&apikey=${TD_API_KEY}`);
+      const data = await res.json();
+      if (!data || !data.price) throw new Error("TwelveData XAU error");
+      return parseFloat(data.price);
+    } else if (pair === "USOIL") {
+      // TwelveData supports WTI with symbol "CL=F" (futures) or "WTI/USD" on some feeds.
+      // We'll try CL=F first. If your plan doesn't allow, switch to "WTI/USD".
+      const res  = await fetch(`https://api.twelvedata.com/price?symbol=CL=F&apikey=${TD_API_KEY}`);
+      const data = await res.json();
+      if (!data || !data.price) throw new Error("TwelveData OIL error");
+      return parseFloat(data.price);
+    }
+  } catch (error) {
+    signalBox.innerHTML = "❌ ERROR FETCHING LIVE PRICE!";
+    console.error(error);
+    return null;
+  }
+}
+
+/* ==== Helper: Render ==== */
 function renderSignalUpper(text) {
   signalBox.innerHTML = text.toUpperCase().replace(/\n/g, "<br>");
 }
 function renderLevelsClickable(levels=[]) {
   if (!levels.length) return "";
-  return `<div class="levels"><span class="muted">TAP LEVEL TO EXECUTE:</span><br>${
-    levels.map(l => `<span data-lvl="${l}" title="Tap to execute at level" style="cursor:pointer;padding:4px 8px;border:1px solid #00ffea;border-radius:6px;margin:4px;display:inline-block;">${l}</span>`).join(" ")
+  return `<div class="levels"><span class="muted">Tap level to execute:</span><br>${
+    levels.map(l => `<span data-lvl="${l}" title="Tap to execute at level">${l}</span>`).join(" ")
   }</div>`;
 }
 signalBox.addEventListener("click", (e) => {
@@ -148,52 +182,17 @@ signalBox.addEventListener("click", (e) => {
   tapExecuteAtLevel(lvl);
 });
 
-/* ==== Live Price ==== */
-async function fetchLivePrice(pair) {
-  try {
-    if (pair === "BTCUSD") {
-      const res  = await fetch("https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT");
-      const data = await res.json();
-      return parseFloat(data.price);
-    }
-    if (pair === "XAUUSD") {
-      const res  = await fetch(`https://api.twelvedata.com/price?symbol=XAU/USD&apikey=${GOLD_API_KEY}`);
-      const data = await res.json();
-      if (data && data.price) return parseFloat(data.price);
-      throw new Error("Gold price not available");
-    }
-    if (pair === "USOIL") {
-      // Try TwelveData: CL (Crude Oil Futures)
-      let res  = await fetch(`https://api.twelvedata.com/price?symbol=CL&apikey=${OIL_API_KEY}`);
-      let data = await res.json();
-      if (data && data.price) return parseFloat(data.price);
-
-      // Fallback: WTI/USD pair (if provider supports)
-      res  = await fetch(`https://api.twelvedata.com/price?symbol=WTI/USD&apikey=${OIL_API_KEY}`);
-      data = await res.json();
-      if (data && data.price) return parseFloat(data.price);
-
-      throw new Error("USOIL price not available (check API key/symbol)");
-    }
-  } catch (error) {
-    signalBox.innerHTML = "❌ ERROR FETCHING LIVE PRICE!";
-    console.error(error);
-    return null;
-  }
-}
-
-/* ==== GOLD Logic (original style) ==== */
+/* ==== GOLD (same style as your original, zones + momentum) ==== */
 function getGoldSetup(price) {
   const dailyBias    = price > 3350.5 ? "BUY" : "SELL";
   const momentumSell = price < 3377.28;
   const momentumBuy  = price > 3377.28;
-
   const sellZones = [3372, 3370, 3365, 3360, 3356, 3351];
   const buyZones  = [3381, 3385, 3389, 3394];
-
   const entryZones = momentumSell ? sellZones : buyZones;
-  const direction  = momentumSell ? "SELL" : "BUY";
-  const inZone     = entryZones.some(level => Math.abs(price - level) <= 0.5);
+
+  const inZone = entryZones.some(level => Math.abs(price - level) <= 0.5);
+  const direction = momentumSell ? "SELL" : "BUY";
 
   const entry = parseFloat(price.toFixed(2));
   const tp1   = direction === "BUY" ? (entry + 5).toFixed(2)  : (entry - 5).toFixed(2);
@@ -204,136 +203,171 @@ function getGoldSetup(price) {
   return { dailyBias, momentumBuy, momentumSell, entryZones, inZone, direction, entry, tp1, tp2, tp3, sl };
 }
 
-/* ==== US OIL Logic (same style) ==== */
-/* NOTE: Levels are placeholders; edit to your preferred zones */
-function getOilSetup(price) {
-  // Simple pivot for bias (adjust as you like)
-  const pivot        = 80.00;
-  const momentumSell = price < 81.50;
-  const momentumBuy  = price > 81.50;
-
-  const sellZones = [81.2, 81.0, 80.6, 80.2, 79.9, 79.5];
-  const buyZones  = [81.8, 82.2, 82.6, 83.0];
-
-  const entryZones = momentumSell ? sellZones : buyZones;
-  const direction  = momentumSell ? "SELL" : "BUY";
-  const inZone     = entryZones.some(level => Math.abs(price - level) <= 0.12); // tighter zone for oil
-
-  const entry = parseFloat(price.toFixed(2));
-  const tp1   = direction === "BUY" ? (entry + 0.30).toFixed(2) : (entry - 0.30).toFixed(2);
-  const tp2   = direction === "BUY" ? (entry + 0.60).toFixed(2) : (entry - 0.60).toFixed(2);
-  const tp3   = direction === "BUY" ? (entry + 0.90).toFixed(2) : (entry - 0.90).toFixed(2);
-  const sl    = direction === "BUY" ? (entry - 0.25).toFixed(2) : (entry + 0.25).toFixed(2);
-
-  const dailyBias = price > pivot ? "BUY" : "SELL";
-  return { dailyBias, momentumBuy, momentumSell, entryZones, inZone, direction, entry, tp1, tp2, tp3, sl };
-}
-
-/* ==== BTC Logic (simple) ==== */
+/* ==== BTC (same style as GOLD, but dynamic zones around pivot so random feel chole jay) ==== */
 function getBTCSetup(price) {
-  // Example zones; adjust freely
-  const pivot        = 65000;
-  const momentumSell = price < 65200;
-  const momentumBuy  = price > 65200;
+  // Pivot = nearest 1000 + 500 (e.g., 65320 -> 65500)
+  const nearestThousand = Math.floor(price / 1000) * 1000;
+  const pivot = nearestThousand + 500;
 
-  const sellZones = [65100, 64950, 64800, 64650];
-  const buyZones  = [65300, 65500, 65750, 66000];
+  const momentumSell = price < pivot;
+  const momentumBuy  = price >= pivot;
+  const direction    = momentumSell ? "SELL" : "BUY";
 
+  // Dynamic zones: ±200, ±400, ±600, ±800 from pivot
+  const sellZones = [pivot - 200, pivot - 400, pivot - 600, pivot - 800];
+  const buyZones  = [pivot + 200, pivot + 400, pivot + 600, pivot + 800];
   const entryZones = momentumSell ? sellZones : buyZones;
-  const direction  = momentumSell ? "SELL" : "BUY";
-  const inZone     = entryZones.some(level => Math.abs(price - level) <= 25);
+
+  // BTC band wider
+  const inZone = entryZones.some(level => Math.abs(price - level) <= 20);
 
   const entry = parseFloat(price.toFixed(2));
-  const tp1   = direction === "BUY" ? (entry + 80).toFixed(2)  : (entry - 80).toFixed(2);
-  const tp2   = direction === "BUY" ? (entry + 160).toFixed(2) : (entry - 160).toFixed(2);
-  const tp3   = direction === "BUY" ? (entry + 240).toFixed(2) : (entry - 240).toFixed(2);
-  const sl    = direction === "BUY" ? (entry - 60).toFixed(2)  : (entry + 60).toFixed(2);
+  const tp1   = direction === "BUY" ? (entry + 100).toFixed(2) : (entry - 100).toFixed(2);
+  const tp2   = direction === "BUY" ? (entry + 200).toFixed(2) : (entry - 200).toFixed(2);
+  const tp3   = direction === "BUY" ? (entry + 300).toFixed(2) : (entry - 300).toFixed(2);
+  const sl    = direction === "BUY" ? (entry - 80).toFixed(2)  : (entry + 80).toFixed(2);
 
-  const dailyBias = price > pivot ? "BUY" : "SELL";
-  return { dailyBias, momentumBuy, momentumSell, entryZones, inZone, direction, entry, tp1, tp2, tp3, sl };
+  return { pivot, momentumBuy, momentumSell, entryZones, inZone, direction, entry, tp1, tp2, tp3, sl };
 }
 
-/* ==== Get Setup Switch ==== */
-function getSetup(pair, price) {
-  if (pair === "XAUUSD") return getGoldSetup(price);
-  if (pair === "USOIL")  return getOilSetup(price);
-  return getBTCSetup(price);
+/* ==== US OIL (same pattern as GOLD; dynamic zones around round dollars) ==== */
+function getOilSetup(price) {
+  // Pivot = nearest whole + 0.50 (e.g., 82.34 -> 82.50)
+  const nearestWhole = Math.floor(price);
+  const pivot = nearestWhole + 0.5;
+
+  const momentumSell = price < pivot;
+  const momentumBuy  = price >= pivot;
+  const direction    = momentumSell ? "SELL" : "BUY";
+
+  // Zones every 0.50 / 1.00 around pivot
+  const sellZones = [pivot - 0.5, pivot - 1.0, pivot - 1.5, pivot - 2.0];
+  const buyZones  = [pivot + 0.5, pivot + 1.0, pivot + 1.5, pivot + 2.0];
+  const entryZones = momentumSell ? sellZones : buyZones;
+
+  const inZone = entryZones.some(level => Math.abs(price - level) <= 0.08);
+
+  const entry = parseFloat(price.toFixed(2));
+  const tp1   = direction === "BUY" ? (entry + 0.20).toFixed(2) : (entry - 0.20).toFixed(2);
+  const tp2   = direction === "BUY" ? (entry + 0.40).toFixed(2) : (entry - 0.40).toFixed(2);
+  const tp3   = direction === "BUY" ? (entry + 0.60).toFixed(2) : (entry - 0.60).toFixed(2);
+  const sl    = direction === "BUY" ? (entry - 0.18).toFixed(2) : (entry + 0.18).toFixed(2);
+
+  return { pivot, momentumBuy, momentumSell, entryZones, inZone, direction, entry, tp1, tp2, tp3, sl };
 }
 
-/* ==== Manual Tap Execute ==== */
+/* ==== Manual Tap Execute (common) ==== */
 async function tapExecuteAtLevel(level) {
   const pair  = pairSelect.value;
   const price = await fetchLivePrice(pair);
   if (price == null) return;
-  const time  = new Date().toLocaleTimeString("en-IN", { hour12: true });
 
+  if (isMarketClosed(pair)) {
+    renderSignalUpper(`⚠️ ${pair} MARKET IS CLOSED TODAY.`);
+    speak(`${pair} market is closed today`);
+    return;
+  }
+
+  const time = new Date().toLocaleTimeString("en-IN", { hour12: true });
+  // Direction: simple tap idea — if current <= level → BUY, else SELL
   const direction = price <= level ? "BUY" : "SELL";
   const entry = level.toFixed(2);
 
-  // TPs/SL per-asset scaling
+  // TP/SL distances depend on pair
   let tp1, tp2, tp3, sl;
   if (pair === "XAUUSD") {
     tp1 = direction === "BUY" ? (level + 5).toFixed(2)  : (level - 5).toFixed(2);
     tp2 = direction === "BUY" ? (level + 10).toFixed(2) : (level - 10).toFixed(2);
     tp3 = direction === "BUY" ? (level + 15).toFixed(2) : (level - 15).toFixed(2);
     sl  = direction === "BUY" ? (level - 4).toFixed(2)  : (level + 4).toFixed(2);
-  } else if (pair === "USOIL") {
-    tp1 = direction === "BUY" ? (level + 0.30).toFixed(2) : (level - 0.30).toFixed(2);
-    tp2 = direction === "BUY" ? (level + 0.60).toFixed(2) : (level - 0.60).toFixed(2);
-    tp3 = direction === "BUY" ? (level + 0.90).toFixed(2) : (level - 0.90).toFixed(2);
-    sl  = direction === "BUY" ? (level - 0.25).toFixed(2) : (level + 0.25).toFixed(2);
+  } else if (pair === "BTCUSD") {
+    tp1 = direction === "BUY" ? (level + 100).toFixed(2) : (level - 100).toFixed(2);
+    tp2 = direction === "BUY" ? (level + 200).toFixed(2) : (level - 200).toFixed(2);
+    tp3 = direction === "BUY" ? (level + 300).toFixed(2) : (level - 300).toFixed(2);
+    sl  = direction === "BUY" ? (level - 80).toFixed(2)  : (level + 80).toFixed(2);
   } else {
-    tp1 = direction === "BUY" ? (level + 80).toFixed(2)  : (level - 80).toFixed(2);
-    tp2 = direction === "BUY" ? (level + 160).toFixed(2) : (level - 160).toFixed(2);
-    tp3 = direction === "BUY" ? (level + 240).toFixed(2) : (level - 240).toFixed(2);
-    sl  = direction === "BUY" ? (level - 60).toFixed(2)  : (level + 60).toFixed(2);
+    // USOIL
+    tp1 = direction === "BUY" ? (level + 0.20).toFixed(2) : (level - 0.20).toFixed(2);
+    tp2 = direction === "BUY" ? (level + 0.40).toFixed(2) : (level - 0.40).toFixed(2);
+    tp3 = direction === "BUY" ? (level + 0.60).toFixed(2) : (level - 0.60).toFixed(2);
+    sl  = direction === "BUY" ? (level - 0.18).toFixed(2) : (level + 0.18).toFixed(2);
   }
 
   activeSignal = { pair, direction, entry, tp1, tp2, tp3, sl, time, mode: "MANUAL-TAP", status: "RUNNING" };
 
-  const text =
+  const text = 
 `📊 ${pair}: ${direction}
 ⚙️ MODE: MANUAL-TAP
 🟡 ENTRY: ${entry}
 🎯 TP1: ${tp1} | TP2: ${tp2} | TP3: ${tp3}
 🛑 SL: ${sl}
-📍 LIVE PRICE: ${price}
+📍 LIVE PRICE: ${price.toFixed(2)}
 📈 TRADE IS LIVE...`;
   renderSignalUpper(text);
   speak(`${pair} ${direction}. Entry ${entry}. TP1 ${tp1}, TP2 ${tp2}, SL ${sl}`);
 }
 
-/* ==== Manual Button Generate ==== */
+/* ==== Manual Button Generate (Gold-like logic shared to BTC & OIL) ==== */
 async function generateSignal() {
   const pair = pairSelect.value;
+  const time = new Date().toLocaleTimeString("en-IN", { hour12: true });
 
   if (activeSignal) {
     renderSignalUpper("⏳ WAIT: A SIGNAL IS ALREADY ACTIVE!");
     speak("Wait, a signal is already active");
     return;
   }
-  if (isWeekendClosed(pair)) {
+  if (isMarketClosed(pair)) {
     renderSignalUpper(`⚠️ ${pair} MARKET IS CLOSED TODAY.`);
-    speak("Market is closed today");
+    speak(`${pair} market is closed today`);
     return;
   }
 
   const price = await fetchLivePrice(pair);
   if (!price) return;
 
-  const s = getSetup(pair, price);
-  if (!s.inZone) {
-    const msg =
+  let s, levelsText = "";
+  if (pair === "XAUUSD") {
+    s = getGoldSetup(price);
+    levelsText = renderLevelsClickable(s.entryZones);
+    if (!s.inZone) {
+      const msg = 
 `❌ NO VALID TRADE SETUP NOW.
 PRICE NOT NEAR ANY KEY ZONE.
-CURRENT: ${price}
-${renderLevelsClickable(s.entryZones)}`;
-    signalBox.innerHTML = msg.toUpperCase().replace(/\n/g, "<br>");
-    speak("No trade now. Price not near level zone.");
-    return;
+CURRENT: ${price.toFixed(2)}
+${levelsText}`;
+      signalBox.innerHTML = msg.toUpperCase().replace(/\n/g, "<br>");
+      speak("No trade now. Price not near level zone.");
+      return;
+    }
+  } else if (pair === "BTCUSD") {
+    s = getBTCSetup(price);
+    levelsText = renderLevelsClickable(s.entryZones);
+    if (!s.inZone) {
+      const msg = 
+`❌ NO VALID TRADE SETUP NOW.
+PRICE NOT NEAR ANY KEY ZONE.
+CURRENT: ${price.toFixed(2)}
+${levelsText}`;
+      signalBox.innerHTML = msg.toUpperCase().replace(/\n/g, "<br>");
+      speak("No trade now. Price not near level zone.");
+      return;
+    }
+  } else { // USOIL
+    s = getOilSetup(price);
+    levelsText = renderLevelsClickable(s.entryZones);
+    if (!s.inZone) {
+      const msg = 
+`❌ NO VALID TRADE SETUP NOW.
+PRICE NOT NEAR ANY KEY ZONE.
+CURRENT: ${price.toFixed(2)}
+${levelsText}`;
+      signalBox.innerHTML = msg.toUpperCase().replace(/\n/g, "<br>");
+      speak("No trade now. Price not near level zone.");
+      return;
+    }
   }
 
-  const time = new Date().toLocaleTimeString("en-IN", { hour12: true });
   activeSignal = { pair, direction: s.direction, entry: s.entry, tp1: s.tp1, tp2: s.tp2, tp3: s.tp3, sl: s.sl, time, mode: "INTRADAY", status: "RUNNING" };
   const text =
 `📊 ${pair}: ${s.direction}
@@ -341,7 +375,7 @@ ${renderLevelsClickable(s.entryZones)}`;
 🟡 ENTRY: ${s.entry}
 🎯 TP1: ${s.tp1} | TP2: ${s.tp2} | TP3: ${s.tp3}
 🛑 SL: ${s.sl}
-📍 LIVE PRICE: ${price}
+📍 LIVE PRICE: ${price.toFixed(2)}
 📈 TRADE IS LIVE...`;
   renderSignalUpper(text);
   speak(`${pair} ${s.direction}. Entry ${s.entry}. TP1 ${s.tp1}, TP2 ${s.tp2}, SL ${s.sl}`);
@@ -349,17 +383,22 @@ ${renderLevelsClickable(s.entryZones)}`;
 
 /* ==== Auto Monitor (real-time) ==== */
 async function autoMonitorTick() {
-  if (activeSignal) return;
+  if (activeSignal) return; // don't spawn another
   const pair = pairSelect.value;
-  if (isWeekendClosed(pair)) {
+  if (isMarketClosed(pair)) {
     renderSignalUpper(`⚠️ ${pair} MARKET IS CLOSED TODAY.`);
     return;
   }
+
   const price = await fetchLivePrice(pair);
   if (!price) return;
 
-  const s = getSetup(pair, price);
-  const baseHeader = `🛰️ AUTO MONITORING ACTIVE — PAIR: ${pair} — PRICE: ${price}`;
+  let s;
+  if (pair === "XAUUSD") s = getGoldSetup(price);
+  else if (pair === "BTCUSD") s = getBTCSetup(price);
+  else s = getOilSetup(price);
+
+  const baseHeader = `🛰️ AUTO MONITORING — PAIR: ${pair} — PRICE: ${price.toFixed(2)}`;
   if (!s.inZone) {
     const view =
 `${baseHeader}
@@ -369,7 +408,7 @@ ${renderLevelsClickable(s.entryZones)}`;
     return;
   }
 
-  // Found a potential setup → mark pending & schedule execute after 10 minutes
+  // Found potential setup → mark pending & schedule execute after 10 minutes
   const nowStr = new Date().toLocaleTimeString("en-IN", { hour12: true });
   const pendingText =
 `${baseHeader}
@@ -387,7 +426,11 @@ DETECTED AT: ${nowStr}`;
     if (activeSignal) return;
     const rePrice = await fetchLivePrice(pair);
     if (!rePrice) return;
-    const re = getSetup(pair, rePrice);
+
+    let re;
+    if (pair === "XAUUSD") re = getGoldSetup(rePrice);
+    else if (pair === "BTCUSD") re = getBTCSetup(rePrice);
+    else re = getOilSetup(rePrice);
 
     if (re.inZone) {
       const time = new Date().toLocaleTimeString("en-IN", { hour12: true });
@@ -398,7 +441,7 @@ DETECTED AT: ${nowStr}`;
 🟡 ENTRY: ${re.entry}
 🎯 TP1: ${re.tp1} | TP2: ${re.tp2} | TP3: ${re.tp3}
 🛑 SL: ${re.sl}
-📍 LIVE PRICE: ${rePrice}
+📍 LIVE PRICE: ${rePrice.toFixed(2)}
 ✅ AUTO-EXECUTED AFTER 10 MINUTES`;
       renderSignalUpper(execText);
       speak(`${pair} ${re.direction}. Entry ${re.entry}. TP1 ${re.tp1}, TP2 ${re.tp2}, SL ${re.sl}`);
@@ -424,7 +467,7 @@ function handleModeChange() {
   if (mode === "AUTO") {
     renderSignalUpper("🛰️ AUTO MODE ON — MONITORING LIVE PRICE...");
     autoMonitorId = setInterval(autoMonitorTick, MONITOR_EVERY_MS);
-    autoMonitorTick();
+    autoMonitorTick(); // run once immediately
   } else {
     renderSignalUpper("🖐️ MANUAL MODE — TAP A LEVEL OR PRESS GENERATE SIGNAL");
   }
@@ -434,12 +477,16 @@ handleModeChange();
 /* ==== Reset ==== */
 function resetSignal() {
   if (pendingTimer) { clearTimeout(pendingTimer); pendingTimer = null; }
+  if (autoMonitorId && modeSelect.value === "AUTO") {
+    clearInterval(autoMonitorId);
+    autoMonitorId = setInterval(autoMonitorTick, MONITOR_EVERY_MS); // keep auto mode alive
+  }
   activeSignal = null;
   renderSignalUpper("🔄 RESET DONE. WAITING FOR SIGNAL...");
   speak("Reset done");
 }
 
-/* ==== Starfield animation ==== */
+/* ==== Starfield animation (unchanged) ==== */
 const canvas = document.getElementById("starfield");
 const ctx = canvas.getContext("2d");
 let stars = [];
@@ -465,7 +512,7 @@ animateStars();
 /* ==== Clock ==== */
 setInterval(() => {
   const now = new Date();
-  timeDisplay.innerText = "⏰ CURRENT INDIAN TIME: " + now.toLocaleTimeString("en-IN").toUpperCase();
+  timeDisplay.innerText = "⏰ Current Indian Time: " + now.toLocaleTimeString("en-IN");
 }, 1000);
 </script>
 </body>
