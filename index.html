@@ -3,73 +3,58 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Forex Big Move Detector</title>
+  <title>Forex Signal</title>
   <style>
     body {
-      background: black;
-      color: lime;
+      background: #000;
+      color: #fff;
       font-family: Arial, sans-serif;
       text-align: center;
       padding: 20px;
     }
-    h1 {
-      color: #00ff7f;
-      font-size: 28px;
-    }
     select, button {
-      padding: 10px;
-      font-size: 16px;
-      margin: 10px;
-      border-radius: 10px;
-      border: none;
-    }
-    button {
-      background: limegreen;
-      color: black;
-      font-weight: bold;
-      cursor: pointer;
+      padding: 6px 12px;
+      margin: 5px;
+      font-size: 14px;
     }
     #result {
-      margin-top: 20px;
-      border: 2px solid lime;
-      border-radius: 12px;
-      padding: 20px;
-      font-size: 18px;
+      margin-top: 15px;
+      padding: 10px;
+      border: 1px solid #888;
+      display: inline-block;
+      min-width: 220px;
+      text-align: left;
     }
     .buy { color: #00ff00; font-weight: bold; }
-    .sell { color: #ff4444; font-weight: bold; }
-    .wait { color: #ffa500; font-weight: bold; }
+    .sell { color: #ff3333; font-weight: bold; }
+    .wait { color: #ffff66; font-weight: bold; }
   </style>
 </head>
 <body>
-  <h1>🚀 Forex Big Move Detector</h1>
-  <p>Check Market Move & Generate Signal</p>
+  <h2>Forex Signal Detector</h2>
 
   <select id="symbol">
     <option value="BTCUSDT">BTC/USDT</option>
     <option value="ETHUSDT">ETH/USDT</option>
     <option value="BNBUSDT">BNB/USDT</option>
-    <option value="XRPUSDT">XRP/USDT</option>
   </select>
 
-  <button onclick="generateSignal()">Generate Signal</button>
+  <button onclick="generateSignal()">Check Signal</button>
 
-  <div id="result"></div>
+  <div id="result">No data yet...</div>
 
   <script>
-    let lookback = 20; // last 20 candles (20 mins for 1m interval)
     let prices = [];
+    let lookback = 20; // কতগুলো candle দেখা হবে
 
-    // Fetch last close price
     async function fetchClose(symbol) {
       const res = await fetch(
         `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=1m&limit=1`
       );
       const data = await res.json();
-      return parseFloat(data[0][4]); // last candle close
+      return parseFloat(data[0][4]); // last close price
     }
 
-    // Generate Signal
     async function generateSignal() {
       const symbol = document.getElementById("symbol").value;
       const price = await fetchClose(symbol);
@@ -77,47 +62,33 @@
       if (prices.length > lookback) prices.shift();
 
       let signal = "WAIT";
-      let signalClass = "wait";
+      let cls = "wait";
+      let changePct = 0;
 
       if (prices.length >= lookback) {
         const high = Math.max(...prices);
         const low = Math.min(...prices);
-        const range = high - low;
-        const changePct = ((price - prices[0]) / prices[0]) * 100;
+        changePct = ((price - prices[0]) / prices[0]) * 100;
 
-        // --- Big Move Detector ---
+        // Big Move detector
         if (changePct >= 0.3) {
           signal = "BUY";
-          signalClass = "buy";
+          cls = "buy";
         } else if (changePct <= -0.3) {
           signal = "SELL";
-          signalClass = "sell";
-        } else {
-          // --- Early Breakout Detector ---
-          if (price > high * 0.998 && range < high * 0.005) {
-            signal = "⚡ POSSIBLE EARLY BUY (Breakout forming)";
-            signalClass = "buy";
-          } else if (price < low * 1.002 && range < high * 0.005) {
-            signal = "⚡ POSSIBLE EARLY SELL (Breakdown forming)";
-            signalClass = "sell";
-          }
+          cls = "sell";
         }
-
-        document.getElementById("result").innerHTML = `
-          <p>Symbol: ${symbol}</p>
-          <p>Prev Price: ${prices[0]}</p>
-          <p>Last Price: ${price}</p>
-          <p>Change: ${changePct.toFixed(3)}%</p>
-          <p class="${signalClass}">Signal: ${signal}</p>
-        `;
-      } else {
-        document.getElementById("result").innerHTML = `
-          <p>Collecting data... (${prices.length}/${lookback})</p>
-        `;
       }
+
+      document.getElementById("result").innerHTML = `
+        Symbol: ${symbol}<br>
+        Last Price: ${price}<br>
+        Change: ${changePct.toFixed(3)}%<br>
+        Signal: <span class="${cls}">${signal}</span>
+      `;
     }
 
-    // Auto refresh every 10s
+    // Auto update প্রতি 10 সেকেন্ডে
     setInterval(generateSignal, 10000);
   </script>
 </body>
