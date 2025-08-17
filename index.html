@@ -5,34 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>🚀 Forex Big Move Detector</title>
   <style>
-    body {
-      background-color: black;
-      color: #00ff99;
-      font-family: Arial, sans-serif;
-      text-align: center;
-      padding: 40px;
-    }
-    button {
-      background: #00cc66;
-      color: white;
-      border: none;
-      padding: 12px 20px;
-      font-size: 16px;
-      border-radius: 8px;
-      cursor: pointer;
-      margin-top: 20px;
-    }
-    button:hover {
-      background: #00994d;
-    }
-    .signal-box {
-      margin-top: 30px;
-      padding: 20px;
-      border: 2px solid #00ff99;
-      border-radius: 10px;
-      display: inline-block;
-      min-width: 250px;
-    }
+    body { background: black; color: #00ff99; font-family: Arial, sans-serif; text-align: center; padding: 40px; }
+    h1 { color: #00ff66; }
+    button { background: #00cc66; color: white; border: none; padding: 12px 20px; font-size: 16px; border-radius: 8px; cursor: pointer; margin-top: 20px; }
+    button:hover { background: #00994d; }
+    .signal-box { margin-top: 30px; padding: 20px; border: 2px solid #00ff99; border-radius: 10px; display: inline-block; min-width: 250px; }
     .buy { color: lime; font-weight: bold; }
     .sell { color: red; font-weight: bold; }
     .wait { color: yellow; font-weight: bold; }
@@ -54,30 +31,28 @@
   <div id="result" class="signal-box">Waiting...</div>
 
   <script>
-    let lastPrice = null;
-
     async function generateSignal() {
       const symbol = document.getElementById("symbol").value;
-      const res = await fetch(`https://api.binance.com/api/v3/ticker/price?symbol=${symbol}`);
+
+      // Get last 2 candles (1 min interval)
+      const res = await fetch(`https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=1m&limit=2`);
       const data = await res.json();
-      const price = parseFloat(data.price);
+
+      const prevClose = parseFloat(data[0][4]); // last candle close
+      const lastClose = parseFloat(data[1][4]); // current candle close
+
+      const diff = lastClose - prevClose;
+      const changePct = (diff / prevClose) * 100;
 
       let signal = "WAIT";
-      let changePct = 0;
-
-      if (lastPrice !== null) {
-        const diff = Math.abs(price - lastPrice);
-        changePct = (diff / lastPrice) * 100;
-        if (changePct > 0.3) { // 0.3% sudden move
-          signal = price > lastPrice ? "BUY" : "SELL";
-        }
+      if (Math.abs(changePct) > 0.3) {  // sudden move > 0.3%
+        signal = diff > 0 ? "BUY" : "SELL";
       }
-
-      lastPrice = price;
 
       document.getElementById("result").innerHTML = `
         <p>Symbol: ${symbol}</p>
-        <p>Price: ${price}</p>
+        <p>Prev Close: ${prevClose}</p>
+        <p>Last Close: ${lastClose}</p>
         <p>Change: ${changePct.toFixed(3)}%</p>
         <p class="${signal.toLowerCase()}">Signal: ${signal}</p>
       `;
