@@ -1,95 +1,302 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Forex Signal</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>TS ANGEL • Forex/Crpyto Trading Assistant</title>
+  <meta name="theme-color" content="#0b1220"/>
   <style>
-    body {
-      background: #000;
-      color: #fff;
-      font-family: Arial, sans-serif;
-      text-align: center;
-      padding: 20px;
+    :root{
+      --bg:#0b1220; --card:#121a2b; --muted:#9fb0c7; --text:#e7eefc;
+      --green:#20d56b; --red:#ff5d5d; --amber:#ffd166; --border:#1e2a44;
+      --accent:#7ee0ff;
     }
-    select, button {
-      padding: 6px 12px;
-      margin: 5px;
-      font-size: 14px;
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;background:radial-gradient(1200px 1200px at 20% -10%,rgba(126,224,255,.08),transparent) , var(--bg);
+      color:var(--text); font:14px/1.45 Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif;
+      display:flex; min-height:100vh;
     }
-    #result {
-      margin-top: 15px;
-      padding: 10px;
-      border: 1px solid #888;
-      display: inline-block;
-      min-width: 220px;
-      text-align: left;
+    /* Layout */
+    .sidebar{
+      width:250px; background:linear-gradient(180deg,#0e1729,rgba(14,23,41,.7));
+      border-right:1px solid var(--border); padding:20px; position:sticky; top:0; height:100vh;
     }
-    .buy { color: #00ff00; font-weight: bold; }
-    .sell { color: #ff3333; font-weight: bold; }
-    .wait { color: #ffff66; font-weight: bold; }
+    .brand{display:flex;align-items:center;gap:10px;margin-bottom:18px}
+    .brand .logo{
+      width:36px;height:36px;border-radius:10px;display:grid;place-items:center;
+      background:linear-gradient(135deg,#44ffd2,#1fb4ff); color:#081429; font-weight:800;
+      box-shadow:0 8px 25px rgba(31,180,255,.25);
+    }
+    .brand h1{font-size:15px;margin:0;letter-spacing:.4px}
+    .nav a{
+      display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--muted);
+      padding:10px 12px;border-radius:10px; margin:4px 0; border:1px solid transparent;
+    }
+    .nav a.active,.nav a:hover{color:var(--text); background:#0f1830;border-color:var(--border)}
+    .foot{position:absolute;left:0;right:0;bottom:10px;padding:0 20px;color:var(--muted);font-size:12px}
+
+    .main{flex:1; min-width:0; display:flex; flex-direction:column}
+    .topbar{
+      display:flex;align-items:center;justify-content:space-between;
+      padding:14px 18px;border-bottom:1px solid var(--border); backdrop-filter: blur(6px);
+    }
+    .stats{display:flex;gap:12px;flex-wrap:wrap}
+    .stat{background:var(--card);border:1px solid var(--border);padding:10px 14px;border-radius:12px;min-width:140px}
+    .muted{color:var(--muted)}
+    .wrap{padding:18px;display:grid;grid-template-columns:1.1fr .9fr;gap:18px}
+    @media (max-width:1100px){.wrap{grid-template-columns:1fr}}
+    .card{
+      background:var(--card); border:1px solid var(--border); border-radius:16px;
+      box-shadow:0 10px 25px rgba(0,0,0,.25); overflow:hidden;
+    }
+    .card .head{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--border)}
+    .chip{padding:6px 10px;border-radius:999px;font-weight:600;font-size:12px}
+    .chip.buy{background:rgba(32,213,107,.12); color:var(--green); border:1px solid rgba(32,213,107,.35)}
+    .chip.sell{background:rgba(255,93,93,.12); color:var(--red); border:1px solid rgba(255,93,93,.35)}
+    .chip.wait{background:rgba(255,209,102,.12); color:var(--amber); border:1px solid rgba(255,209,102,.35)}
+
+    .grid2{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+    .row{display:flex;gap:10px;flex-wrap:wrap}
+    .ctrl{display:flex;flex-direction:column;gap:6px}
+    .ctrl label{font-size:12px;color:var(--muted)}
+    .ctrl input,.ctrl select,.ctrl button{
+      background:#0f1830; color:var(--text); border:1px solid var(--border); padding:10px 12px; border-radius:10px;
+    }
+    .ctrl button{cursor:pointer; background:linear-gradient(135deg,#1fb4ff,#44ffd2); color:#061227; font-weight:700; border:none}
+    .ctrl button:active{transform:translateY(1px)}
+    .kv{display:grid;grid-template-columns:110px 1fr;gap:6px;margin:6px 0}
+    .kv .k{color:var(--muted)}
+    .log{max-height:320px;overflow:auto;padding:10px 14px}
+    .log .item{padding:10px;border-bottom:1px dashed var(--border)}
+    .green{color:var(--green)} .red{color:var(--red)} .amber{color:var(--amber)}
+    .hint{font-size:12px;color:var(--muted)}
+    .chart{height:420px}
   </style>
 </head>
 <body>
-  <h2>Forex Signal Detector</h2>
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="logo">TS</div>
+      <h1>TS ANGEL • Signal AI</h1>
+    </div>
+    <nav class="nav">
+      <a class="active" href="#">Live Signals</a>
+      <a href="#">History</a>
+      <a href="#">Settings</a>
+    </nav>
+    <div class="foot">© Created by Trader Sumon</div>
+  </aside>
 
-  <select id="symbol">
-    <option value="BTCUSDT">BTC/USDT</option>
-    <option value="ETHUSDT">ETH/USDT</option>
-    <option value="BNBUSDT">BNB/USDT</option>
-  </select>
+  <!-- Main -->
+  <section class="main">
+    <div class="topbar">
+      <div class="row">
+        <strong>Live Monitor</strong>
+      </div>
+      <div class="stats">
+        <div class="stat"><div class="muted">Bot Status</div><div id="botState" class="green">Running</div></div>
+        <div class="stat"><div class="muted">Last Update</div><div id="lastUpdate">—</div></div>
+        <div class="stat"><div class="muted">Active Pair</div><div id="activePair">BTCUSDT</div></div>
+      </div>
+    </div>
 
-  <button onclick="generateSignal()">Check Signal</button>
+    <div class="wrap">
+      <!-- LEFT: Chart + Controls + Current Signal -->
+      <div class="card">
+        <div class="head">
+          <div class="row" style="gap:12px;align-items:center">
+            <div class="ctrl">
+              <label>Symbol</label>
+              <select id="symbol">
+                <option value="BINANCE:BTCUSDT|BINANCE">BTC/USDT (Binance)</option>
+                <option value="BINANCE:ETHUSDT|BINANCE">ETH/USDT (Binance)</option>
+                <!-- Below are VIEW-ONLY on chart; signals need data API you can add later -->
+                <option value="OANDA:XAUUSD|VIEWONLY">GOLD XAU/USD (View)</option>
+                <option value="TVC:USOIL|VIEWONLY">USOIL (WTI) (View)</option>
+              </select>
+            </div>
+            <div class="ctrl">
+              <label>Sensitivity % (Big Move)</label>
+              <input id="threshold" type="number" step="0.01" value="0.30"/>
+            </div>
+            <div class="ctrl">
+              <label>Lookback (min)</label>
+              <input id="lookback" type="number" value="20"/>
+            </div>
+            <div class="ctrl">
+              <label>&nbsp;</label>
+              <button id="btnOnce">Generate Signal</button>
+            </div>
+            <div class="ctrl">
+              <label>&nbsp;</label>
+              <button id="btnAuto">Auto: ON</button>
+            </div>
+          </div>
+          <div id="sigChip" class="chip wait">WAIT</div>
+        </div>
 
-  <div id="result">No data yet...</div>
+        <div id="tvChart" class="chart"></div>
+
+        <div style="padding:16px" class="grid2">
+          <div>
+            <div class="kv"><div class="k">Prev</div><div id="kvPrev">—</div></div>
+            <div class="kv"><div class="k">Last</div><div id="kvLast">—</div></div>
+            <div class="kv"><div class="k">Δ %</div><div id="kvPct">—</div></div>
+            <div class="kv"><div class="k">Range</div><div id="kvRange">—</div></div>
+            <div class="hint">Crypto signals work for Binance pairs. XAU/USOIL currently show chart only (plug your data API later).</div>
+          </div>
+          <div>
+            <div class="kv"><div class="k">Signal</div><div id="kvSignal" class="amber">WAIT</div></div>
+            <div class="kv"><div class="k">Reason</div><div id="kvWhy" class="muted">—</div></div>
+            <div class="kv"><div class="k">Time</div><div id="kvTime">—</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: Live Log / History -->
+      <div class="card">
+        <div class="head"><strong>Live Log</strong><span class="muted">latest 20</span></div>
+        <div id="log" class="log"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TradingView Lightweight Widget -->
+  <script src="https://s3.tradingview.com/tv.js"></script>
 
   <script>
-    let prices = [];
-    let lookback = 20; // কতগুলো candle দেখা হবে
+    // ====== Helpers ======
+    const $ = (id)=>document.getElementById(id);
+    const fmt = (n)=> (n===null||n===undefined) ? '—' : (+n).toLocaleString(undefined,{maximumFractionDigits:6});
+    const nowStr = ()=> new Date().toLocaleTimeString();
 
-    async function fetchClose(symbol) {
-      const res = await fetch(
-        `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=1m&limit=1`
-      );
-      const data = await res.json();
-      return parseFloat(data[0][4]); // last close price
+    // ====== Chart ======
+    let tvWidget;
+    function loadChart(tvSymbol){
+      if(!window.TradingView) return;
+      $('activePair').textContent = tvSymbol.split(':')[1] || tvSymbol;
+      if(tvWidget) tvWidget.remove();
+      tvWidget = new TradingView.widget({
+        autosize:true,
+        symbol: tvSymbol,
+        interval: "1",
+        theme: "dark",
+        style: "1",
+        timezone: "Etc/UTC",
+        container_id: "tvChart",
+        hide_top_toolbar: false,
+        hide_legend: false,
+        studies: [],
+      });
     }
 
-    async function generateSignal() {
-      const symbol = document.getElementById("symbol").value;
-      const price = await fetchClose(symbol);
-      prices.push(price);
-      if (prices.length > lookback) prices.shift();
+    // ====== Signal Engine (Big move + Early breakout) ======
+    let autoTimer = null;
 
-      let signal = "WAIT";
-      let cls = "wait";
-      let changePct = 0;
+    async function binanceKlines(binanceSymbol, limit=60){
+      const url = `https://api.binance.com/api/v3/klines?symbol=${binanceSymbol}&interval=1m&limit=${limit}`;
+      const res = await fetch(url);
+      if(!res.ok) throw new Error("Binance API error");
+      const data = await res.json();
+      return data.map(k => parseFloat(k[4])); // closes
+    }
 
-      if (prices.length >= lookback) {
-        const high = Math.max(...prices);
-        const low = Math.min(...prices);
-        changePct = ((price - prices[0]) / prices[0]) * 100;
+    function analyze(prices, thresholdPct){
+      // prices: array oldest -> latest
+      const first = prices[0], last = prices[prices.length-1];
+      const high = Math.max(...prices), low=Math.min(...prices);
+      const range = high - low;
+      const pct = ((last-first)/first)*100;
 
-        // Big Move detector
-        if (changePct >= 0.3) {
-          signal = "BUY";
-          cls = "buy";
-        } else if (changePct <= -0.3) {
-          signal = "SELL";
-          cls = "sell";
+      let signal="WAIT", reason="No big move.", chipClass="wait";
+
+      // Big move
+      if(pct >= thresholdPct){
+        signal="BUY"; reason=`Up ${pct.toFixed(3)}% over lookback.`; chipClass="buy";
+      }else if(pct <= -thresholdPct){
+        signal="SELL"; reason=`Down ${pct.toFixed(3)}% over lookback.`; chipClass="sell";
+      }else{
+        // Early breakout (squeeze + edge poke)
+        const narrow = range < (high * 0.005); // ~0.5% band
+        if(narrow && last >= high*0.998){
+          signal="EARLY BUY"; reason="Range squeeze & breaking highs"; chipClass="buy";
+        }else if(narrow && last <= low*1.002){
+          signal="EARLY SELL"; reason="Range squeeze & breaking lows"; chipClass="sell";
         }
       }
-
-      document.getElementById("result").innerHTML = `
-        Symbol: ${symbol}<br>
-        Last Price: ${price}<br>
-        Change: ${changePct.toFixed(3)}%<br>
-        Signal: <span class="${cls}">${signal}</span>
-      `;
+      return {first,last,high,low,range,pct,signal,reason,chipClass};
     }
 
-    // Auto update প্রতি 10 সেকেন্ডে
-    setInterval(generateSignal, 10000);
+    function pushLog(text, cls=""){
+      const el = document.createElement('div');
+      el.className = 'item';
+      el.innerHTML = `<span class="muted">${nowStr()}</span> — <span class="${cls}">${text}</span>`;
+      $('log').prepend(el);
+      while($('log').children.length>20) $('log').lastChild.remove();
+    }
+
+    function renderReport(rep){
+      $('kvPrev').textContent = fmt(rep.first);
+      $('kvLast').textContent = fmt(rep.last);
+      $('kvPct').textContent  = (rep.pct>0?'+':'') + rep.pct.toFixed(3) + '%';
+      $('kvRange').textContent= fmt(rep.range);
+      $('kvSignal').textContent = rep.signal;
+      $('kvSignal').className = rep.signal.includes('BUY') ? 'green' : rep.signal.includes('SELL') ? 'red' : 'amber';
+      $('kvWhy').textContent = rep.reason;
+      $('kvTime').textContent = nowStr();
+      const chip = $('sigChip'); chip.textContent = rep.signal; chip.className='chip '+rep.chipClass;
+      $('lastUpdate').textContent = nowStr();
+    }
+
+    async function runOnce(){
+      const [tvSymbol, mode] = $('symbol').value.split('|');
+      const threshold = Math.max(0.01, parseFloat($('threshold').value||'0.3'));
+      const lookback = Math.max(5, parseInt($('lookback').value||'20',10));
+
+      if(mode === 'VIEWONLY'){
+        renderReport({first:null,last:null,pct:0,range:0,signal:'VIEW ONLY',reason:'Chart only (add data API to enable signals).',chipClass:'wait'});
+        pushLog(`Switched to ${tvSymbol} (view only)`);
+        loadChart(tvSymbol);
+        return;
+      }
+
+      // tvSymbol like BINANCE:BTCUSDT -> binance symbol part
+      const binanceSymbol = tvSymbol.split(':')[1];
+      try{
+        const prices = await binanceKlines(binanceSymbol, lookback);
+        const report = analyze(prices, threshold);
+        renderReport(report);
+        const cls = report.signal.includes('BUY')?'green': report.signal.includes('SELL')?'red':'amber';
+        pushLog(`${binanceSymbol} → ${report.signal} @ ${fmt(report.last)} (${report.pct.toFixed(3)}%)`, cls);
+      }catch(err){
+        renderReport({first:null,last:null,pct:0,range:0,signal:'ERROR',reason:err.message,chipClass:'wait'});
+        pushLog(`Error: ${err.message}`,'amber');
+      }
+      loadChart(tvSymbol);
+    }
+
+    function toggleAuto(){
+      if(autoTimer){
+        clearInterval(autoTimer); autoTimer=null;
+        $('btnAuto').textContent='Auto: OFF'; $('botState').textContent='Paused'; $('botState').className='amber';
+      }else{
+        runOnce();
+        autoTimer = setInterval(runOnce, 10000);
+        $('btnAuto').textContent='Auto: ON'; $('botState').textContent='Running'; $('botState').className='green';
+      }
+    }
+
+    // ====== Events ======
+    $('btnOnce').addEventListener('click', runOnce);
+    $('btnAuto').addEventListener('click', toggleAuto);
+    $('symbol').addEventListener('change', ()=>{ runOnce(); });
+
+    // init
+    loadChart('BINANCE:BTCUSDT');
+    toggleAuto(); // start auto by default
   </script>
 </body>
-</html>
+<Terminalal
