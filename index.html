@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>TS Angel Forex AI — Full</title>
+  <title>TS Angel Forex AI — TEST VERSION</title>
   <style>
     html,body{margin:0;padding:0;overflow-x:hidden;font-family:Arial,sans-serif;background:black;color:white;text-transform:uppercase}
     canvas#starfield{position:fixed;top:0;left:0;width:100%;height:100%;z-index:-1}
@@ -19,11 +19,14 @@
     @keyframes neon-flicker{0%,100%{text-shadow:0 0 5px #0ff,0 0 10px #0ff,0 0 20px #0ff}50%{text-shadow:0 0 2px #0ff,0 0 5px #0ff}}
     @keyframes glow-pulse{0%,100%{box-shadow:0 0 10px #00ffe7,0 0 20px #00ffe7}50%{box-shadow:0 0 5px #00ffe7,0 0 10px #00ffe7}}
     .bar{display:flex;flex-wrap:wrap;justify-content:center;gap:8px}
+    /* Debug badge */
+    #debugBadge{position:fixed;right:12px;top:12px;background:rgba(0,0,0,0.6);border:1px solid #00ffea;color:#00ffea;padding:8px 10px;border-radius:8px;font-size:0.85rem;z-index:9999;text-align:left;min-width:170px}
+    #midnightToast{position:fixed;left:50%;transform:translateX(-50%);bottom:24px;background:#111;padding:12px 18px;border-radius:8px;border:1px solid #00ffe7;color:#ffcc00;z-index:9999;display:none}
   </style>
 </head>
 <body>
   <canvas id="starfield"></canvas>
-  <h1>🚀 TS ANGEL FOREX AI (BTC • GOLD • USOIL)</h1>
+  <h1>🚀 TS ANGEL FOREX AI TEST VERSION</h1>
   <p id="timeDisplay">⏰ CURRENT INDIAN TIME:</p>
 
   <div class="bar">
@@ -47,6 +50,10 @@
   <div class="watermark">💡 CREATED BY TRADER SUMON</div>
   <audio id="clickSound" src="https://assets.mixkit.co/sfx/preview/mixkit-game-click-1114.mp3"></audio>
 
+  <!-- Debug badge & midnight toast -->
+  <div id="debugBadge">LOADING STATS...</div>
+  <div id="midnightToast"></div>
+
 <script>
 /* ================= DOM ================= */
 const pairSelect   = document.getElementById("pairSelect");
@@ -55,6 +62,8 @@ const tvChart      = document.getElementById("tvChart");
 const signalBox    = document.getElementById("signalBox");
 const timeDisplay  = document.getElementById("timeDisplay");
 const clickSound   = document.getElementById("clickSound");
+const debugBadge   = document.getElementById("debugBadge");
+const midnightToast= document.getElementById("midnightToast");
 
 /* ================= STATE ================= */
 let activeSignal   = null;
@@ -64,6 +73,7 @@ let autoMonitorId  = null;
 /* ================= PERSISTED STATS (daily/session counters) ================= */
 // MODIFIED: added persistent trade stats to enforce daily/session limits and min trades fallback
 const STATS_KEY = "ts_angel_trade_stats_v1";
+const SUMMARY_KEY = "ts_angel_daily_summaries_v1"; // last 7 days
 function loadStats(){
   try{
     const raw = localStorage.getItem(STATS_KEY);
@@ -79,7 +89,7 @@ function createEmptyStats(){
   const today = getISTDateString(new Date());
   return { date: today, total: 0, perSession: { ASIA:0, LONDON:0, NEWYORK:0 }, perPair: {} };
 }
-function saveStats(s){ localStorage.setItem(STATS_KEY, JSON.stringify(s)); }
+function saveStats(s){ localStorage.setItem(STATS_KEY, JSON.stringify(s)); logStatsToConsole(); updateDebugBadge(); }
 let tradeStats = loadStats();
 
 /* ================= CONFIG =================
@@ -229,6 +239,66 @@ function getSessionName(date){
   if(h >= 0 && h <= 8) return "ASIA";
   if(h >= 9 && h <= 16) return "LONDON";
   return "NEWYORK";
+}
+
+/* ================= DEBUG & MIDNIGHT SUMMARY HELPERS (ADDED) ================= */
+function logStatsToConsole(){
+  try{ console.log("[TS-ANGEL] tradeStats:", JSON.stringify(tradeStats)); }catch(e){}
+}
+function updateDebugBadge(){
+  const s = tradeStats;
+  const today = s.date || getISTDateString(new Date());
+  const asia = s.perSession.ASIA||0, lon = s.perSession.LONDON||0, ny = s.perSession.NEWYORK||0;
+  debugBadge.innerHTML = `DATE: ${today}<br>TOTAL: ${s.total}<br>ASIA:${asia} LONDON:${lon} NY:${ny}`;
+}
+/* persist daily summary (last 7 days) */
+function loadSummaries(){ try{ const raw = localStorage.getItem(SUMMARY_KEY); return raw ? JSON.parse(raw) : []; }catch(e){ return []; } }
+function saveSummaryObject(obj){
+  const arr = loadSummaries();
+  arr.unshift(obj); // newest first
+  // keep last 7 days
+  const trimmed = arr.slice(0,7);
+  localStorage.setItem(SUMMARY_KEY, JSON.stringify(trimmed));
+}
+function showMidnightToast(text){
+  midnightToast.innerHTML = text;
+  midnightToast.style.display = "block";
+  setTimeout(()=>{ midnightToast.style.display = "none"; }, 12_000);
+}
+/* schedule IST-midnight job */
+function scheduleMidnightJob(){
+  // compute ms until next IST midnight
+  const now = new Date();
+  // convert to IST time value
+  const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+  const istOffset = 5.5 * 60 * 60 * 1000;
+  const istNow = new Date(utc + istOffset);
+  // next midnight IST
+  const nextMid = new Date(istNow);
+  nextMid.setHours(24,0,5,0); // 00:00:05 next day IST (small 5s buffer)
+  const msUntil = nextMid.getTime() - istNow.getTime();
+  setTimeout(()=>{ runMidnightSummary(); setInterval(runMidnightSummary, 24*60*60*1000); }, msUntil);
+}
+function runMidnightSummary(){
+  try{
+    // tradeStats may belong to previous day; create summary from it
+    const s = tradeStats;
+    const summary = {
+      date: s.date || getISTDateString(new Date(Date.now() + 5.5*3600000)),
+      total: s.total || 0,
+      perSession: s.perSession || {ASIA:0,LONDON:0,NEWYORK:0},
+      perPair: s.perPair || {}
+    };
+    // save and show
+    saveSummaryObject(summary);
+    const msg = `MIDNIGHT SUMMARY — ${summary.date}\nTOTAL: ${summary.total} | ASIA:${summary.perSession.ASIA||0} LONDON:${summary.perSession.LONDON||0} NEWYORK:${summary.perSession.NEWYORK||0}`;
+    renderSignalUpper(msg);
+    speak(`Aajker report. Total trades ${summary.total}. Asia ${summary.perSession.ASIA||0}, London ${summary.perSession.LONDON||0}, New York ${summary.perSession.NEWYORK||0}`);
+    showMidnightToast(msg.replace(/\n/g,"<br>"));
+    // reset tradeStats for new day
+    tradeStats = createEmptyStats();
+    saveStats(tradeStats);
+  }catch(e){ console.error("Midnight summary error",e); }
 }
 
 /* ================= MANUAL TAP ================= */
@@ -455,9 +525,11 @@ async function autoMonitorTick(){
   const session = getSessionName(new Date());
   if(tradeStats.perSession[session] >= cfg.maxTradesPerSession) {
     // nothing to do this session
+    updateDebugBadge();
     return;
   }
   if(tradeStats.total >= cfg.maxTradesPerDay) {
+    updateDebugBadge();
     return;
   }
 
@@ -472,6 +544,7 @@ async function autoMonitorTick(){
 NO VALID SETUP NEAR ZONES.
 ${renderLevelsClickable(s.entryZones, CONFIG[pair].digits)}`;
     signalBox.innerHTML = view.toUpperCase().replace(/\n/g,"<br>");
+    updateDebugBadge();
     return;
   }
 
@@ -491,8 +564,8 @@ DETECTED AT: ${nowStr}`;
   pendingTimer = setTimeout(async ()=>{
     if(activeSignal) return;
     // re-check counters (maybe user hit limits meanwhile)
-    if(tradeStats.perSession[session] >= cfg.maxTradesPerSession) { pendingTimer = null; return; }
-    if(tradeStats.total >= cfg.maxTradesPerDay) { pendingTimer = null; return; }
+    if(tradeStats.perSession[session] >= cfg.maxTradesPerSession) { pendingTimer = null; updateDebugBadge(); return; }
+    if(tradeStats.total >= cfg.maxTradesPerDay) { pendingTimer = null; updateDebugBadge(); return; }
 
     let rePrice = null;
     try{ rePrice = await fetchLivePrice(pair); } catch(e){}
@@ -533,7 +606,10 @@ ${renderLevelsClickable(re.entryZones, CONFIG[pair].digits)}`;
       }
     }
     pendingTimer = null;
+    updateDebugBadge();
   }, AUTO_DELAY_MS);
+
+  updateDebugBadge();
 }
 
 /* ================= MODE SWITCH ================= */
@@ -561,6 +637,7 @@ function resetSignal(){
   // saveStats(tradeStats);
   renderSignalUpper("🔄 RESET DONE. WAITING FOR SIGNAL...");
   speak("Reset done");
+  updateDebugBadge();
 }
 
 /* ================= STARFIELD ================= */
@@ -589,6 +666,13 @@ setInterval(()=>{
   const now = new Date();
   timeDisplay.innerText = ("⏰ CURRENT INDIAN TIME: " + now.toLocaleTimeString("en-IN")).toUpperCase();
 },1000);
+
+/* ================= INIT ================= */
+// initial badge render & console log
+updateDebugBadge();
+logStatsToConsole();
+// schedule midnight summary (IST)
+scheduleMidnightJob();
 </script>
 </body>
 </html>
