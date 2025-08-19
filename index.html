@@ -1,302 +1,594 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>TS ANGEL • Forex/Crpyto Trading Assistant</title>
-  <meta name="theme-color" content="#0b1220"/>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TS Angel Forex AI — Full</title>
   <style>
-    :root{
-      --bg:#0b1220; --card:#121a2b; --muted:#9fb0c7; --text:#e7eefc;
-      --green:#20d56b; --red:#ff5d5d; --amber:#ffd166; --border:#1e2a44;
-      --accent:#7ee0ff;
-    }
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    body{
-      margin:0;background:radial-gradient(1200px 1200px at 20% -10%,rgba(126,224,255,.08),transparent) , var(--bg);
-      color:var(--text); font:14px/1.45 Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif;
-      display:flex; min-height:100vh;
-    }
-    /* Layout */
-    .sidebar{
-      width:250px; background:linear-gradient(180deg,#0e1729,rgba(14,23,41,.7));
-      border-right:1px solid var(--border); padding:20px; position:sticky; top:0; height:100vh;
-    }
-    .brand{display:flex;align-items:center;gap:10px;margin-bottom:18px}
-    .brand .logo{
-      width:36px;height:36px;border-radius:10px;display:grid;place-items:center;
-      background:linear-gradient(135deg,#44ffd2,#1fb4ff); color:#081429; font-weight:800;
-      box-shadow:0 8px 25px rgba(31,180,255,.25);
-    }
-    .brand h1{font-size:15px;margin:0;letter-spacing:.4px}
-    .nav a{
-      display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--muted);
-      padding:10px 12px;border-radius:10px; margin:4px 0; border:1px solid transparent;
-    }
-    .nav a.active,.nav a:hover{color:var(--text); background:#0f1830;border-color:var(--border)}
-    .foot{position:absolute;left:0;right:0;bottom:10px;padding:0 20px;color:var(--muted);font-size:12px}
-
-    .main{flex:1; min-width:0; display:flex; flex-direction:column}
-    .topbar{
-      display:flex;align-items:center;justify-content:space-between;
-      padding:14px 18px;border-bottom:1px solid var(--border); backdrop-filter: blur(6px);
-    }
-    .stats{display:flex;gap:12px;flex-wrap:wrap}
-    .stat{background:var(--card);border:1px solid var(--border);padding:10px 14px;border-radius:12px;min-width:140px}
-    .muted{color:var(--muted)}
-    .wrap{padding:18px;display:grid;grid-template-columns:1.1fr .9fr;gap:18px}
-    @media (max-width:1100px){.wrap{grid-template-columns:1fr}}
-    .card{
-      background:var(--card); border:1px solid var(--border); border-radius:16px;
-      box-shadow:0 10px 25px rgba(0,0,0,.25); overflow:hidden;
-    }
-    .card .head{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--border)}
-    .chip{padding:6px 10px;border-radius:999px;font-weight:600;font-size:12px}
-    .chip.buy{background:rgba(32,213,107,.12); color:var(--green); border:1px solid rgba(32,213,107,.35)}
-    .chip.sell{background:rgba(255,93,93,.12); color:var(--red); border:1px solid rgba(255,93,93,.35)}
-    .chip.wait{background:rgba(255,209,102,.12); color:var(--amber); border:1px solid rgba(255,209,102,.35)}
-
-    .grid2{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
-    .row{display:flex;gap:10px;flex-wrap:wrap}
-    .ctrl{display:flex;flex-direction:column;gap:6px}
-    .ctrl label{font-size:12px;color:var(--muted)}
-    .ctrl input,.ctrl select,.ctrl button{
-      background:#0f1830; color:var(--text); border:1px solid var(--border); padding:10px 12px; border-radius:10px;
-    }
-    .ctrl button{cursor:pointer; background:linear-gradient(135deg,#1fb4ff,#44ffd2); color:#061227; font-weight:700; border:none}
-    .ctrl button:active{transform:translateY(1px)}
-    .kv{display:grid;grid-template-columns:110px 1fr;gap:6px;margin:6px 0}
-    .kv .k{color:var(--muted)}
-    .log{max-height:320px;overflow:auto;padding:10px 14px}
-    .log .item{padding:10px;border-bottom:1px dashed var(--border)}
-    .green{color:var(--green)} .red{color:var(--red)} .amber{color:var(--amber)}
-    .hint{font-size:12px;color:var(--muted)}
-    .chart{height:420px}
+    html,body{margin:0;padding:0;overflow-x:hidden;font-family:Arial,sans-serif;background:black;color:white;text-transform:uppercase}
+    canvas#starfield{position:fixed;top:0;left:0;width:100%;height:100%;z-index:-1}
+    body{text-align:center;padding:20px}
+    h1{color:#00ffe7;animation:neon-flicker 1.5s infinite}
+    #timeDisplay{font-size:1.1rem;color:#ffcc00;animation:neon-flicker 2s infinite}
+    select,button{padding:12px 20px;margin:10px;font-size:1rem;border-radius:6px;background:#111;color:#00ffea;border:2px solid #00ffea;cursor:pointer;animation:glow-pulse 2s infinite}
+    button:hover{background:#00ffea;color:black}
+    iframe{width:100%;height:500px;border:none;margin-top:25px;border-radius:10px;box-shadow:0 0 20px #00ffe7;animation:glow-pulse 3s infinite}
+    .signal-box{margin-top:25px;background:#111;padding:20px;border-radius:10px;font-size:1.05rem;color:#ffcc00;animation:glow-pulse 1.5s infinite;white-space:pre-line;line-height:1.4}
+    .watermark{margin-top:40px;font-size:1.1rem;color:#00ffe7;animation:neon-flicker 2s infinite}
+    .levels a{color:#00ffea;text-decoration:underline;cursor:pointer;margin:0 6px;display:inline-block}
+    @keyframes neon-flicker{0%,100%{text-shadow:0 0 5px #0ff,0 0 10px #0ff,0 0 20px #0ff}50%{text-shadow:0 0 2px #0ff,0 0 5px #0ff}}
+    @keyframes glow-pulse{0%,100%{box-shadow:0 0 10px #00ffe7,0 0 20px #00ffe7}50%{box-shadow:0 0 5px #00ffe7,0 0 10px #00ffe7}}
+    .bar{display:flex;flex-wrap:wrap;justify-content:center;gap:8px}
   </style>
 </head>
 <body>
-  <!-- Sidebar -->
-  <aside class="sidebar">
-    <div class="brand">
-      <div class="logo">TS</div>
-      <h1>TS ANGEL • Signal AI</h1>
-    </div>
-    <nav class="nav">
-      <a class="active" href="#">Live Signals</a>
-      <a href="#">History</a>
-      <a href="#">Settings</a>
-    </nav>
-    <div class="foot">© Created by Trader Sumon</div>
-  </aside>
+  <canvas id="starfield"></canvas>
+  <h1>🚀 TS ANGEL FOREX AI (BTC • GOLD • USOIL)</h1>
+  <p id="timeDisplay">⏰ CURRENT INDIAN TIME:</p>
 
-  <!-- Main -->
-  <section class="main">
-    <div class="topbar">
-      <div class="row">
-        <strong>Live Monitor</strong>
-      </div>
-      <div class="stats">
-        <div class="stat"><div class="muted">Bot Status</div><div id="botState" class="green">Running</div></div>
-        <div class="stat"><div class="muted">Last Update</div><div id="lastUpdate">—</div></div>
-        <div class="stat"><div class="muted">Active Pair</div><div id="activePair">BTCUSDT</div></div>
-      </div>
-    </div>
+  <div class="bar">
+    <select id="pairSelect" title="PAIR">
+      <option value="BTCUSD">BTCUSD</option>
+      <option value="XAUUSD" selected>XAUUSD</option>
+      <option value="USOIL">USOIL</option>
+    </select>
 
-    <div class="wrap">
-      <!-- LEFT: Chart + Controls + Current Signal -->
-      <div class="card">
-        <div class="head">
-          <div class="row" style="gap:12px;align-items:center">
-            <div class="ctrl">
-              <label>Symbol</label>
-              <select id="symbol">
-                <option value="BINANCE:BTCUSDT|BINANCE">BTC/USDT (Binance)</option>
-                <option value="BINANCE:ETHUSDT|BINANCE">ETH/USDT (Binance)</option>
-                <!-- Below are VIEW-ONLY on chart; signals need data API you can add later -->
-                <option value="OANDA:XAUUSD|VIEWONLY">GOLD XAU/USD (View)</option>
-                <option value="TVC:USOIL|VIEWONLY">USOIL (WTI) (View)</option>
-              </select>
-            </div>
-            <div class="ctrl">
-              <label>Sensitivity % (Big Move)</label>
-              <input id="threshold" type="number" step="0.01" value="0.30"/>
-            </div>
-            <div class="ctrl">
-              <label>Lookback (min)</label>
-              <input id="lookback" type="number" value="20"/>
-            </div>
-            <div class="ctrl">
-              <label>&nbsp;</label>
-              <button id="btnOnce">Generate Signal</button>
-            </div>
-            <div class="ctrl">
-              <label>&nbsp;</label>
-              <button id="btnAuto">Auto: ON</button>
-            </div>
-          </div>
-          <div id="sigChip" class="chip wait">WAIT</div>
-        </div>
+    <select id="modeSelect" title="MODE">
+      <option value="MANUAL" selected>MANUAL</option>
+      <option value="AUTO">AUTO</option>
+    </select>
 
-        <div id="tvChart" class="chart"></div>
+    <button onclick="playClick(); generateSignal()">📡 GENERATE SIGNAL</button>
+    <button onclick="playClick(); resetSignal()">♻️ RESET</button>
+  </div>
 
-        <div style="padding:16px" class="grid2">
-          <div>
-            <div class="kv"><div class="k">Prev</div><div id="kvPrev">—</div></div>
-            <div class="kv"><div class="k">Last</div><div id="kvLast">—</div></div>
-            <div class="kv"><div class="k">Δ %</div><div id="kvPct">—</div></div>
-            <div class="kv"><div class="k">Range</div><div id="kvRange">—</div></div>
-            <div class="hint">Crypto signals work for Binance pairs. XAU/USOIL currently show chart only (plug your data API later).</div>
-          </div>
-          <div>
-            <div class="kv"><div class="k">Signal</div><div id="kvSignal" class="amber">WAIT</div></div>
-            <div class="kv"><div class="k">Reason</div><div id="kvWhy" class="muted">—</div></div>
-            <div class="kv"><div class="k">Time</div><div id="kvTime">—</div></div>
-          </div>
-        </div>
-      </div>
+  <div class="signal-box" id="signalBox">🔍 WAITING FOR SIGNAL...</div>
+  <iframe id="tvChart"></iframe>
+  <div class="watermark">💡 CREATED BY TRADER SUMON</div>
+  <audio id="clickSound" src="https://assets.mixkit.co/sfx/preview/mixkit-game-click-1114.mp3"></audio>
 
-      <!-- RIGHT: Live Log / History -->
-      <div class="card">
-        <div class="head"><strong>Live Log</strong><span class="muted">latest 20</span></div>
-        <div id="log" class="log"></div>
-      </div>
-    </div>
-  </section>
+<script>
+/* ================= DOM ================= */
+const pairSelect   = document.getElementById("pairSelect");
+const modeSelect   = document.getElementById("modeSelect");
+const tvChart      = document.getElementById("tvChart");
+const signalBox    = document.getElementById("signalBox");
+const timeDisplay  = document.getElementById("timeDisplay");
+const clickSound   = document.getElementById("clickSound");
 
-  <!-- TradingView Lightweight Widget -->
-  <script src="https://s3.tradingview.com/tv.js"></script>
+/* ================= STATE ================= */
+let activeSignal   = null;
+let pendingTimer   = null;
+let autoMonitorId  = null;
 
-  <script>
-    // ====== Helpers ======
-    const $ = (id)=>document.getElementById(id);
-    const fmt = (n)=> (n===null||n===undefined) ? '—' : (+n).toLocaleString(undefined,{maximumFractionDigits:6});
-    const nowStr = ()=> new Date().toLocaleTimeString();
+/* ================= PERSISTED STATS (daily/session counters) ================= */
+// MODIFIED: added persistent trade stats to enforce daily/session limits and min trades fallback
+const STATS_KEY = "ts_angel_trade_stats_v1";
+function loadStats(){
+  try{
+    const raw = localStorage.getItem(STATS_KEY);
+    if(!raw) return createEmptyStats();
+    const obj = JSON.parse(raw);
+    // reset if date changed
+    const today = getISTDateString(new Date());
+    if(obj.date !== today) return createEmptyStats();
+    return obj;
+  }catch(e){ return createEmptyStats(); }
+}
+function createEmptyStats(){
+  const today = getISTDateString(new Date());
+  return { date: today, total: 0, perSession: { ASIA:0, LONDON:0, NEWYORK:0 }, perPair: {} };
+}
+function saveStats(s){ localStorage.setItem(STATS_KEY, JSON.stringify(s)); }
+let tradeStats = loadStats();
 
-    // ====== Chart ======
-    let tvWidget;
-    function loadChart(tvSymbol){
-      if(!window.TradingView) return;
-      $('activePair').textContent = tvSymbol.split(':')[1] || tvSymbol;
-      if(tvWidget) tvWidget.remove();
-      tvWidget = new TradingView.widget({
-        autosize:true,
-        symbol: tvSymbol,
-        interval: "1",
-        theme: "dark",
-        style: "1",
-        timezone: "Etc/UTC",
-        container_id: "tvChart",
-        hide_top_toolbar: false,
-        hide_legend: false,
-        studies: [],
-      });
-    }
-
-    // ====== Signal Engine (Big move + Early breakout) ======
-    let autoTimer = null;
-
-    async function binanceKlines(binanceSymbol, limit=60){
-      const url = `https://api.binance.com/api/v3/klines?symbol=${binanceSymbol}&interval=1m&limit=${limit}`;
-      const res = await fetch(url);
-      if(!res.ok) throw new Error("Binance API error");
+/* ================= CONFIG =================
+  Uses your gold logic; BTC & USOIL copy gold-style with pair specific zones/tolerance.
+  Replace TwelveData API key if you have another one.
+  MODIFIED: added min/max trades and early-entry tolerance settings
+*/
+const CONFIG = {
+  XAUUSD: {
+    tv: "OANDA:XAUUSD",
+    fetch: async () => {
+      const res = await fetch("https://api.twelvedata.com/price?symbol=XAU/USD&apikey=cd96961a49e242fe939a80866e70c57d");
       const data = await res.json();
-      return data.map(k => parseFloat(k[4])); // closes
+      return parseFloat(data.price);
+    },
+    pivot: 3377.28,
+    bias: 3350.50,
+    tolerance: 0.5,
+    zones: (price) => {
+      const momentumSell = price < 3377.28;
+      const levelsSell = [3372,3370,3365,3360,3356,3351];
+      const levelsBuy  = [3381,3385,3389,3394];
+      return momentumSell ? levelsSell : levelsBuy;
+    },
+    tps: {tp1:5,tp2:10,tp3:15},
+    slGap:4,
+    digits:2,
+    // new
+    minTradesPerDay: 1,
+    maxTradesPerDay: 3,
+    maxTradesPerSession: 1,
+    earlyEntryPips: 7, // gold in pips-ish units
+    earlyEntryPercent: 0.15
+  },
+  BTCUSD: {
+    tv: "BINANCE:BTCUSDT",
+    fetch: async () => {
+      const res = await fetch("https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT");
+      const data = await res.json();
+      return parseFloat(data.price);
+    },
+    // example pivots; you can tune these in future
+    pivot: 65000,
+    bias: 60000,
+    tolerance: 20,
+    zones: (price) => {
+      const step = 50;
+      const base = Math.round(price / step) * step;
+      const momentumSell = price < 65000;
+      const ups  = [base + step, base + 2*step, base + 3*step];
+      const downs = [base - step, base - 2*step, base - 3*step, base - 4*step];
+      return momentumSell ? downs : ups;
+    },
+    tps: {tp1:100,tp2:200,tp3:300},
+    slGap:80,
+    digits:2,
+    // new
+    minTradesPerDay: 1,
+    maxTradesPerDay: 3,
+    maxTradesPerSession: 1,
+    earlyEntryPips: 150, // BTC: use pips/units
+    earlyEntryPercent: 0.20
+  },
+  USOIL: {
+    tv: "TVC:USOIL",
+    fetch: async () => {
+      // Try WTICOUSD or BRN/USD via TwelveData
+      try {
+        const r1 = await fetch("https://api.twelvedata.com/price?symbol=WTICOUSD&apikey=cd96961a49e242fe939a80866e70c57d");
+        const d1 = await r1.json();
+        if (d1 && d1.price) return parseFloat(d1.price);
+      } catch(e){}
+      try {
+        const r2 = await fetch("https://api.twelvedata.com/price?symbol=BRN/USD&apikey=cd96961a49e242fe939a80866e70c57d");
+        const d2 = await r2.json();
+        if (d2 && d2.price) return parseFloat(d2.price);
+      } catch(e){}
+      throw new Error("OIL price fetch failed");
+    },
+    pivot: 80,
+    bias: 78,
+    tolerance: 0.2,
+    zones: (price) => {
+      const step = 0.5;
+      const base = Math.round(price / step) * step;
+      const momentumSell = price < 80;
+      const ups   = [base + step, base + 2*step, base + 3*step];
+      const downs = [base - step, base - 2*step, base - 3*step, base - 4*step];
+      return momentumSell ? downs : ups;
+    },
+    tps: {tp1:0.5,tp2:1.0,tp3:1.5},
+    slGap:0.4,
+    digits:2,
+    // new
+    minTradesPerDay: 1,
+    maxTradesPerDay: 3,
+    maxTradesPerSession: 1,
+    earlyEntryPips: 0.5,
+    earlyEntryPercent: 0.20
+  }
+};
+
+/* ================= AUDIO/TTS ================= */
+function speak(text){
+  try{
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'bn-IN';
+    const v = speechSynthesis.getVoices();
+    const fv = v.find(x=>x.lang==='bn-IN' && x.name && x.name.toLowerCase().includes('female'));
+    if(fv) u.voice = fv;
+    speechSynthesis.speak(u);
+  }catch(e){}
+}
+function playClick(){ try{ clickSound.play(); }catch(e){} }
+
+/* ================= CHART LOAD ================= */
+pairSelect.addEventListener("change", () => { loadChart(); renderSignalUpper("🔄 PAIR CHANGED. WAITING FOR SIGNAL..."); });
+function loadChart(){
+  const pair = pairSelect.value;
+  const tv = CONFIG[pair].tv;
+  tvChart.src = `https://s.tradingview.com/widgetembed/?frameElementId=tvChart&symbol=${encodeURIComponent(tv)}&interval=5&theme=dark&style=1&timezone=Asia/Kolkata&withdateranges=1&studies=[]&toolbarbg=rgba(0,0,0,1)&hide_side_toolbar=0&allow_symbol_change=1&saveimage=1&details=1&hotlist=1&calendar=1&drawings_access=%7B%22type%22%3A%22black%22%7D`;
+}
+loadChart();
+
+/* ================= HELPERS ================= */
+function fmt(n,d=2){ return Number(n).toFixed(d) }
+function renderSignalUpper(text){ signalBox.innerHTML = String(text).toUpperCase().replace(/\n/g,"<br>") }
+function near(a,b,tol){ return Math.abs(a-b) <= tol }
+function renderLevelsClickable(levels,digits=2){
+  if(!levels||!levels.length) return "";
+  return `<div class="levels">LEVELS: ${levels.map(l => `<a onclick="tapLevel(${l})">${fmt(l,digits)}</a>`).join(" ")}</div>`;
+}
+function getISTDateString(d){
+  // returns YYYY-MM-DD in IST timezone
+  const utc = d.getTime() + (d.getTimezoneOffset() * 60000);
+  const istOffset = 5.5 * 60 * 60 * 1000;
+  const ist = new Date(utc + istOffset);
+  return ist.toISOString().split('T')[0];
+}
+function getSessionName(date){
+  // date is JS Date (local). Convert to IST hour and choose session window.
+  const utc = date.getTime() + (date.getTimezoneOffset() * 60000);
+  const istOffset = 5.5 * 60 * 60 * 1000;
+  const ist = new Date(utc + istOffset);
+  const h = ist.getHours();
+  // ASIA: 00:00 - 08:59, LONDON: 09:00 - 16:59, NEWYORK: 17:00 - 23:59
+  if(h >= 0 && h <= 8) return "ASIA";
+  if(h >= 9 && h <= 16) return "LONDON";
+  return "NEWYORK";
+}
+
+/* ================= MANUAL TAP ================= */
+async function tapLevel(level){
+  // MODIFIED: session/daily checks before allowing manual tap
+  if(activeSignal){ renderSignalUpper("⏳ WAIT: A SIGNAL IS ALREADY ACTIVE!"); speak("Wait, a signal is already active"); return; }
+  const pair = pairSelect.value;
+  const cfg  = CONFIG[pair];
+  const session = getSessionName(new Date());
+  // session/day counters
+  if(tradeStats.perSession[session] >= cfg.maxTradesPerSession){
+    renderSignalUpper(`🚫 SESSION LIMIT REACHED FOR ${session}.`); speak("Session limit reached");
+    return;
+  }
+  if(tradeStats.total >= cfg.maxTradesPerDay){
+    renderSignalUpper("🚫 DAILY MAX TRADES REACHED."); speak("Daily maximum trades reached");
+    return;
+  }
+
+  let price;
+  try{ price = await cfg.fetch(); } catch(e){ renderSignalUpper("❌ ERROR FETCHING LIVE PRICE!"); return; }
+  const direction = (price < cfg.pivot) ? "SELL" : "BUY";
+  const entry = fmt(level,cfg.digits);
+  const tp1 = direction==="BUY" ? fmt(level+cfg.tps.tp1,cfg.digits) : fmt(level-cfg.tps.tp1,cfg.digits);
+  const tp2 = direction==="BUY" ? fmt(level+cfg.tps.tp2,cfg.digits) : fmt(level-cfg.tps.tp2,cfg.digits);
+  const tp3 = direction==="BUY" ? fmt(level+cfg.tps.tp3,cfg.digits) : fmt(level-cfg.tps.tp3,cfg.digits);
+  const sl  = direction==="BUY" ? fmt(level-cfg.slGap,cfg.digits) : fmt(level+cfg.slGap,cfg.digits);
+  const time= new Date().toLocaleTimeString("en-IN",{hour12:true});
+  activeSignal = {pair,direction,entry,tp1,tp2,tp3,sl,time,mode:"MANUAL-TAP",status:"RUNNING"};
+  // update counters
+  tradeStats.total += 1;
+  tradeStats.perSession[session] = (tradeStats.perSession[session]||0)+1;
+  tradeStats.perPair[pair] = (tradeStats.perPair[pair]||0)+1;
+  saveStats(tradeStats); // persist
+  const txt =
+`📊 ${pair}: ${direction}
+⚙️ MODE: MANUAL-TAP
+🟡 ENTRY: ${entry}
+🎯 TP1: ${tp1} | TP2: ${tp2} | TP3: ${tp3}
+🛑 SL: ${sl}
+📍 LIVE PRICE: ${fmt(price,cfg.digits)}
+📈 TRADE IS LIVE...`;
+  renderSignalUpper(txt);
+  speak(`${pair} ${direction}. Entry ${entry}. TP1 ${tp1}, TP2 ${tp2}, SL ${sl}`);
+}
+
+/* ================= FETCH LIVE PRICE (wrapper) ================= */
+async function fetchLivePrice(pair){
+  try{ return await CONFIG[pair].fetch(); } catch(e){ renderSignalUpper("❌ ERROR FETCHING LIVE PRICE!"); console.error(e); return null; }
+}
+
+/* ================= GET SETUP (gold-style) ================= */
+function getSetup(pair,price){
+  const cfg = CONFIG[pair];
+  const momentumSell = price < cfg.pivot;
+  const direction = momentumSell ? "SELL" : "BUY";
+  const entryZones = cfg.zones(price);
+  const inZone = entryZones.some(l => near(price, l, cfg.tolerance));
+  const nearest = entryZones.slice().sort((a,b)=>Math.abs(price-a)-Math.abs(price-b))[0];
+  const entry = fmt(nearest??price,cfg.digits);
+  const tp1 = direction==="BUY" ? fmt(Number(entry)+cfg.tps.tp1,cfg.digits) : fmt(Number(entry)-cfg.tps.tp1,cfg.digits);
+  const tp2 = direction==="BUY" ? fmt(Number(entry)+cfg.tps.tp2,cfg.digits) : fmt(Number(entry)-cfg.tps.tp2,cfg.digits);
+  const tp3 = direction==="BUY" ? fmt(Number(entry)+cfg.tps.tp3,cfg.digits) : fmt(Number(entry)-cfg.tps.tp3,cfg.digits);
+  const sl  = direction==="BUY" ? fmt(Number(entry)-cfg.slGap,cfg.digits) : fmt(Number(entry)+cfg.slGap,cfg.digits);
+  return {direction,entryZones,inZone,entry,tp1,tp2,tp3,sl,nearest};
+}
+
+/* ================= MANUAL GENERATE BUTTON ================= */
+async function generateSignal(){
+  // MODIFIED: added daily/session checks + soft/early-entry fallback
+  const now = new Date();
+  const pair = pairSelect.value;
+  const day  = now.getDay();
+  const time = now.toLocaleTimeString("en-IN",{hour12:true});
+
+  // gold weekend check (original)
+  if((pair==="XAUUSD") && (day===6||day===0)){ renderSignalUpper("⚠️ GOLD MARKET IS CLOSED TODAY."); speak("Gold market is closed today"); return; }
+  if(activeSignal){ renderSignalUpper("⏳ WAIT: A SIGNAL IS ALREADY ACTIVE!"); speak("Wait, a signal is already active"); return; }
+
+  // enforce daily reset if needed
+  if(tradeStats.date !== getISTDateString(new Date())) {
+    tradeStats = createEmptyStats();
+    saveStats(tradeStats);
+  }
+
+  const session = getSessionName(new Date());
+  const cfg = CONFIG[pair];
+
+  // session/day limits
+  if(tradeStats.perSession[session] >= cfg.maxTradesPerSession){
+    renderSignalUpper(`🚫 SESSION LIMIT REACHED FOR ${session}.`);
+    speak("Session limit reached");
+    return;
+  }
+  if(tradeStats.total >= cfg.maxTradesPerDay){
+    renderSignalUpper("🚫 DAILY MAX TRADES REACHED.");
+    speak("Daily maximum trades reached");
+    return;
+  }
+
+  const price = await fetchLivePrice(pair);
+  if(!price) return;
+  const s = getSetup(pair,price);
+
+  // if in zone -> normal execution
+  if(s.inZone){
+    executeAndRecordAutoOrManual(pair, s, price, "INTRADAY");
+    return;
+  }
+
+  // NOT in zone: check early-entry tolerance (softening)
+  let allowEarly = false;
+  let earlyReason = "";
+  // compute distance
+  const nearest = s.nearest ?? price;
+  const diff = Math.abs(price - nearest);
+  // For FX (USOIL, XAU) use earlyEntryPips; for BTC use percent or pips depending on config values
+  if(cfg.earlyEntryPips && diff <= cfg.earlyEntryPips){
+    allowEarly = true;
+    earlyReason = `PRICE ${fmt(diff,cfg.digits)} AWAY (PIPS TOLERANCE)`;
+  } else if(cfg.earlyEntryPercent){
+    const pct = (diff/price)*100;
+    if(pct <= cfg.earlyEntryPercent){
+      allowEarly = true;
+      earlyReason = `PRICE ${fmt(pct,3)}% AWAY (PCT TOLERANCE)`;
     }
+  }
 
-    function analyze(prices, thresholdPct){
-      // prices: array oldest -> latest
-      const first = prices[0], last = prices[prices.length-1];
-      const high = Math.max(...prices), low=Math.min(...prices);
-      const range = high - low;
-      const pct = ((last-first)/first)*100;
+  // Fallback: if daily trades < minTradesPerDay, be more lenient and allow early entry up to 2x tolerance
+  if(!allowEarly && tradeStats.total < cfg.minTradesPerDay){
+    const extendedTol = (cfg.earlyEntryPips || (price*cfg.earlyEntryPercent/100)) * 2;
+    const diff2 = Math.abs(price - nearest);
+    if(diff2 <= extendedTol){
+      allowEarly = true;
+      earlyReason = `FALLBACK MIN-TRADE MODE — EXTENDED TOLERANCE ${fmt(extendedTol,cfg.digits)}`;
+    }
+  }
 
-      let signal="WAIT", reason="No big move.", chipClass="wait";
+  if(!allowEarly){
+    const msg =
+`❌ NO VALID TRADE SETUP NOW.
+PRICE NOT NEAR ANY KEY ZONE.
+CURRENT: ${fmt(price, CONFIG[pair].digits)}
+${renderLevelsClickable(s.entryZones, CONFIG[pair].digits)}`;
+    signalBox.innerHTML = msg.toUpperCase().replace(/\n/g,"<br>");
+    speak("No trade now. Price not near level zone.");
+    return;
+  }
 
-      // Big move
-      if(pct >= thresholdPct){
-        signal="BUY"; reason=`Up ${pct.toFixed(3)}% over lookback.`; chipClass="buy";
-      }else if(pct <= -thresholdPct){
-        signal="SELL"; reason=`Down ${pct.toFixed(3)}% over lookback.`; chipClass="sell";
-      }else{
-        // Early breakout (squeeze + edge poke)
-        const narrow = range < (high * 0.005); // ~0.5% band
-        if(narrow && last >= high*0.998){
-          signal="EARLY BUY"; reason="Range squeeze & breaking highs"; chipClass="buy";
-        }else if(narrow && last <= low*1.002){
-          signal="EARLY SELL"; reason="Range squeeze & breaking lows"; chipClass="sell";
+  // Early entry accepted — craft EARLY / REDUCED-RISK signal
+  const earlyEntryObj = Object.assign({}, s);
+  // mark entry as current nearest (but note reduced risk in message)
+  earlyEntryObj.entry = fmt(s.nearest ?? price, cfg.digits);
+  executeAndRecordAutoOrManual(pair, earlyEntryObj, price, "EARLY (REDUCED RISK)", earlyReason);
+}
+
+/* ================= EXECUTION & RECORDING (shared) ================= */
+// MODIFIED: centralize execution and update counters
+function executeAndRecordAutoOrManual(pair, setupObj, livePrice, mode="AUTO", extraNote=""){
+  if(activeSignal) return; // safety
+  const cfg = CONFIG[pair];
+  const session = getSessionName(new Date());
+  // final safety checks for limits
+  if(tradeStats.perSession[session] >= cfg.maxTradesPerSession) {
+    renderSignalUpper(`🚫 SESSION LIMIT REACHED FOR ${session}.`);
+    speak("Session limit reached");
+    return;
+  }
+  if(tradeStats.total >= cfg.maxTradesPerDay) {
+    renderSignalUpper("🚫 DAILY MAX TRADES REACHED.");
+    speak("Daily maximum trades reached");
+    return;
+  }
+
+  const time = new Date().toLocaleTimeString("en-IN",{hour12:true});
+  activeSignal = {
+    pair,
+    direction: setupObj.direction,
+    entry: setupObj.entry,
+    tp1: setupObj.tp1,
+    tp2: setupObj.tp2,
+    tp3: setupObj.tp3,
+    sl: setupObj.sl,
+    time,
+    mode,
+    status: "RUNNING",
+    note: extraNote
+  };
+
+  // update counters and persist
+  tradeStats.total += 1;
+  tradeStats.perSession[session] = (tradeStats.perSession[session]||0)+1;
+  tradeStats.perPair[pair] = (tradeStats.perPair[pair]||0)+1;
+  saveStats(tradeStats);
+
+  // message formatting: include extra note for EARLY
+  const noteLine = extraNote ? `\nNOTE: ${extraNote}` : "";
+  const execText = `📊 ${pair}: ${setupObj.direction}
+⚙️ MODE: ${mode}
+🟡 ENTRY: ${setupObj.entry}
+🎯 TP1: ${setupObj.tp1} | TP2: ${setupObj.tp2} | TP3: ${setupObj.tp3}
+🛑 SL: ${setupObj.sl}
+📍 LIVE PRICE: ${fmt(livePrice, CONFIG[pair].digits)}
+📈 TRADE IS LIVE...${noteLine}`;
+  renderSignalUpper(execText);
+  // voice: keep it concise
+  speak(`${pair} ${setupObj.direction}. Entry ${setupObj.entry}. TP1 ${setupObj.tp1}, SL ${setupObj.sl}`);
+}
+
+/* ================= AUTO MONITOR (1MIN) + 10MIN CONFIRM ================= */
+const MONITOR_EVERY_MS = 60_000;
+const AUTO_DELAY_MS = 10 * 60_000;
+
+async function autoMonitorTick(){
+  // MODIFIED: added session/daily checks before pending/execution; uses same early-entry fallback logic as manual
+  if(activeSignal) return;
+  const pair = pairSelect.value;
+  const day = new Date().getDay();
+  if((pair==="XAUUSD") && (day===6||day===0)){ renderSignalUpper("⚠️ GOLD MARKET IS CLOSED TODAY."); return; }
+  // reset daily stats if date changed
+  if(tradeStats.date !== getISTDateString(new Date())){ tradeStats = createEmptyStats(); saveStats(tradeStats); }
+
+  const cfg = CONFIG[pair];
+  const session = getSessionName(new Date());
+  if(tradeStats.perSession[session] >= cfg.maxTradesPerSession) {
+    // nothing to do this session
+    return;
+  }
+  if(tradeStats.total >= cfg.maxTradesPerDay) {
+    return;
+  }
+
+  let price = null;
+  try{ price = await fetchLivePrice(pair); } catch(e){}
+  if(!price) return;
+  const s = getSetup(pair,price);
+  const baseHeader = `🛰️ AUTO MONITORING ACTIVE — PAIR: ${pair} — PRICE: ${fmt(price, CONFIG[pair].digits)}`;
+
+  if(!s.inZone){
+    const view = `${baseHeader}
+NO VALID SETUP NEAR ZONES.
+${renderLevelsClickable(s.entryZones, CONFIG[pair].digits)}`;
+    signalBox.innerHTML = view.toUpperCase().replace(/\n/g,"<br>");
+    return;
+  }
+
+  const nowStr = new Date().toLocaleTimeString("en-IN",{hour12:true});
+  const pendingText = `${baseHeader}
+FOUND SETUP NEAR LEVEL — MARKED AS PENDING
+DIRECTION: ${s.direction}
+PLANNED ENTRY: ${s.entry}
+SL: ${s.sl} | TP1: ${s.tp1} | TP2: ${s.tp2} | TP3: ${s.tp3}
+WILL AUTO-EXECUTE IN 10 MINUTES IF STILL VALID
+DETECTED AT: ${nowStr}`;
+  renderSignalUpper(pendingText);
+  speak("Potential setup found. Will execute in ten minutes if still valid.");
+
+  if(pendingTimer){ clearTimeout(pendingTimer); pendingTimer = null; }
+
+  pendingTimer = setTimeout(async ()=>{
+    if(activeSignal) return;
+    // re-check counters (maybe user hit limits meanwhile)
+    if(tradeStats.perSession[session] >= cfg.maxTradesPerSession) { pendingTimer = null; return; }
+    if(tradeStats.total >= cfg.maxTradesPerDay) { pendingTimer = null; return; }
+
+    let rePrice = null;
+    try{ rePrice = await fetchLivePrice(pair); } catch(e){}
+    if(!rePrice) return;
+    const re = getSetup(pair,rePrice);
+    if(re.inZone){
+      executeAndRecordAutoOrManual(pair, re, rePrice, "AUTO");
+    } else {
+      // If not in zone after 10min, see if early-entry fallback should apply (same logic as generateSignal)
+      const nearest = re.nearest ?? rePrice;
+      const diff = Math.abs(rePrice - nearest);
+      let allowEarly = false;
+      let earlyReason = "";
+      if(cfg.earlyEntryPips && diff <= cfg.earlyEntryPips){
+        allowEarly = true; earlyReason = `PRICE ${fmt(diff,cfg.digits)} AWAY (PIPS TOLERANCE)`;
+      } else if(cfg.earlyEntryPercent){
+        const pct = (diff/rePrice)*100;
+        if(pct <= cfg.earlyEntryPercent){
+          allowEarly = true; earlyReason = `PRICE ${fmt(pct,3)}% AWAY (PCT TOLERANCE)`;
         }
       }
-      return {first,last,high,low,range,pct,signal,reason,chipClass};
-    }
-
-    function pushLog(text, cls=""){
-      const el = document.createElement('div');
-      el.className = 'item';
-      el.innerHTML = `<span class="muted">${nowStr()}</span> — <span class="${cls}">${text}</span>`;
-      $('log').prepend(el);
-      while($('log').children.length>20) $('log').lastChild.remove();
-    }
-
-    function renderReport(rep){
-      $('kvPrev').textContent = fmt(rep.first);
-      $('kvLast').textContent = fmt(rep.last);
-      $('kvPct').textContent  = (rep.pct>0?'+':'') + rep.pct.toFixed(3) + '%';
-      $('kvRange').textContent= fmt(rep.range);
-      $('kvSignal').textContent = rep.signal;
-      $('kvSignal').className = rep.signal.includes('BUY') ? 'green' : rep.signal.includes('SELL') ? 'red' : 'amber';
-      $('kvWhy').textContent = rep.reason;
-      $('kvTime').textContent = nowStr();
-      const chip = $('sigChip'); chip.textContent = rep.signal; chip.className='chip '+rep.chipClass;
-      $('lastUpdate').textContent = nowStr();
-    }
-
-    async function runOnce(){
-      const [tvSymbol, mode] = $('symbol').value.split('|');
-      const threshold = Math.max(0.01, parseFloat($('threshold').value||'0.3'));
-      const lookback = Math.max(5, parseInt($('lookback').value||'20',10));
-
-      if(mode === 'VIEWONLY'){
-        renderReport({first:null,last:null,pct:0,range:0,signal:'VIEW ONLY',reason:'Chart only (add data API to enable signals).',chipClass:'wait'});
-        pushLog(`Switched to ${tvSymbol} (view only)`);
-        loadChart(tvSymbol);
-        return;
+      if(!allowEarly && tradeStats.total < cfg.minTradesPerDay){
+        const extendedTol = (cfg.earlyEntryPips || (rePrice*cfg.earlyEntryPercent/100)) * 2;
+        const diff2 = Math.abs(rePrice - nearest);
+        if(diff2 <= extendedTol){
+          allowEarly = true; earlyReason = `FALLBACK MIN-TRADE MODE — EXTENDED TOLERANCE ${fmt(extendedTol,cfg.digits)}`;
+        }
       }
 
-      // tvSymbol like BINANCE:BTCUSDT -> binance symbol part
-      const binanceSymbol = tvSymbol.split(':')[1];
-      try{
-        const prices = await binanceKlines(binanceSymbol, lookback);
-        const report = analyze(prices, threshold);
-        renderReport(report);
-        const cls = report.signal.includes('BUY')?'green': report.signal.includes('SELL')?'red':'amber';
-        pushLog(`${binanceSymbol} → ${report.signal} @ ${fmt(report.last)} (${report.pct.toFixed(3)}%)`, cls);
-      }catch(err){
-        renderReport({first:null,last:null,pct:0,range:0,signal:'ERROR',reason:err.message,chipClass:'wait'});
-        pushLog(`Error: ${err.message}`,'amber');
-      }
-      loadChart(tvSymbol);
-    }
-
-    function toggleAuto(){
-      if(autoTimer){
-        clearInterval(autoTimer); autoTimer=null;
-        $('btnAuto').textContent='Auto: OFF'; $('botState').textContent='Paused'; $('botState').className='amber';
-      }else{
-        runOnce();
-        autoTimer = setInterval(runOnce, 10000);
-        $('btnAuto').textContent='Auto: ON'; $('botState').textContent='Running'; $('botState').className='green';
+      if(allowEarly){
+        executeAndRecordAutoOrManual(pair, re, rePrice, "AUTO-EARLY", earlyReason);
+      } else {
+        const cancelText = `${baseHeader}
+SETUP INVALID AFTER 10 MINUTES — AUTO EXECUTION CANCELLED
+${renderLevelsClickable(re.entryZones, CONFIG[pair].digits)}`;
+        signalBox.innerHTML = cancelText.toUpperCase().replace(/\n/g,"<br>");
+        speak("Setup cancelled after recheck.");
       }
     }
+    pendingTimer = null;
+  }, AUTO_DELAY_MS);
+}
 
-    // ====== Events ======
-    $('btnOnce').addEventListener('click', runOnce);
-    $('btnAuto').addEventListener('click', toggleAuto);
-    $('symbol').addEventListener('change', ()=>{ runOnce(); });
+/* ================= MODE SWITCH ================= */
+modeSelect.addEventListener("change", handleModeChange);
+function handleModeChange(){
+  const mode = modeSelect.value;
+  if(pendingTimer){ clearTimeout(pendingTimer); pendingTimer = null; }
+  if(autoMonitorId){ clearInterval(autoMonitorId); autoMonitorId = null; }
+  if(mode === "AUTO"){
+    renderSignalUpper("🛰️ AUTO MODE ON — MONITORING LIVE PRICE...");
+    autoMonitorId = setInterval(autoMonitorTick, MONITOR_EVERY_MS);
+    autoMonitorTick();
+  } else {
+    renderSignalUpper("🖐️ MANUAL MODE — TAP A LEVEL OR PRESS GENERATE SIGNAL");
+  }
+}
+handleModeChange();
 
-    // init
-    loadChart('BINANCE:BTCUSDT');
-    toggleAuto(); // start auto by default
-  </script>
+/* ================= RESET ================= */
+function resetSignal(){
+  if(pendingTimer){ clearTimeout(pendingTimer); pendingTimer = null; }
+  activeSignal = null;
+  // optionally reset counters (left as-is): keep daily counters; if you want to clear counts too, uncomment next lines
+  // tradeStats = createEmptyStats();
+  // saveStats(tradeStats);
+  renderSignalUpper("🔄 RESET DONE. WAITING FOR SIGNAL...");
+  speak("Reset done");
+}
+
+/* ================= STARFIELD ================= */
+const canvas = document.getElementById("starfield");
+const ctx = canvas.getContext("2d");
+let stars = [];
+function resizeCanvas(){ canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+resizeCanvas();
+for(let i=0;i<200;i++){ stars.push({x:Math.random()*canvas.width,y:Math.random()*canvas.height,size:Math.random()*2,speed:Math.random()*1}) }
+function animateStars(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.fillStyle = "#00ffe7";
+  stars.forEach(star=>{
+    star.y += star.speed;
+    if(star.y>canvas.height) star.y = 0;
+    ctx.beginPath();
+    ctx.arc(star.x,star.y,star.size,0,2*Math.PI);
+    ctx.fill();
+  });
+  requestAnimationFrame(animateStars);
+}
+animateStars();
+
+/* ================= CLOCK ================= */
+setInterval(()=>{
+  const now = new Date();
+  timeDisplay.innerText = ("⏰ CURRENT INDIAN TIME: " + now.toLocaleTimeString("en-IN")).toUpperCase();
+},1000);
+</script>
 </body>
-<Terminalal
+</html>
