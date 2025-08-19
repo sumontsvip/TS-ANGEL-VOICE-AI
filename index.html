@@ -358,12 +358,12 @@ async function tapLevel(level){
   const tp3 = direction==="BUY" ? fmt(level+cfg.tps.tp3,cfg.digits) : fmt(level-cfg.tps.tp3,cfg.digits);
   const sl  = direction==="BUY" ? fmt(level-cfg.slGap,cfg.digits) : fmt(level+cfg.slGap,cfg.digits);
   const time= new Date().toLocaleTimeString("en-IN",{hour12:true});
-  activeSignal = {pair,direction,entry:entry,tp1,tp1,tp2, tp2, tp3, sl, time, mode:"MANUAL-TAP",status:"RUNNING", hits:{tp1:false,tp2:false,tp3:false,sl:false}};
+  activeSignal = {pair,direction,entry,tp1,tp2,tp3,sl,time,mode:"MANUAL-TAP",status:"RUNNING",hits:{tp1:false,tp2:false,tp3:false,sl:false}};
   // update counters
   tradeStats.total += 1;
   tradeStats.perSession[session] = (tradeStats.perSession[session]||0)+1;
   tradeStats.perPair[pair] = (tradeStats.perPair[pair]||0)+1;
-  saveStats(tradeStats);
+  saveStats(tradeStats); // persist
   saveActiveSignal(activeSignal);
   showActivePanel();
   const txt =
@@ -484,20 +484,14 @@ function executeAndRecordAutoOrManual(pair, setupObj, livePrice, mode="AUTO", ex
     return;
   }
   const time = new Date().toLocaleTimeString("en-IN",{hour12:true});
-  // ensure setupObj fields exist
-  const entry = setupObj.entry;
-  const tp1 = setupObj.tp1;
-  const tp2 = setupObj.tp2;
-  const tp3 = setupObj.tp3;
-  const sl = setupObj.sl;
   activeSignal = {
     pair,
     direction: setupObj.direction,
-    entry: entry,
-    tp1: tp1,
-    tp2: tp2,
-    tp3: tp3,
-    sl: sl,
+    entry: setupObj.entry,
+    tp1: setupObj.tp1,
+    tp2: setupObj.tp2,
+    tp3: setupObj.tp3,
+    sl: setupObj.sl,
     time,
     mode,
     status: "RUNNING",
@@ -512,9 +506,9 @@ function executeAndRecordAutoOrManual(pair, setupObj, livePrice, mode="AUTO", ex
   const noteLine = extraNote ? `\nNOTE: ${extraNote}` : "";
   const execText = `📊 ${pair}: ${setupObj.direction}
 ⚙️ MODE: ${mode}
-🟡 ENTRY: ${activeSignal.entry}
-🎯 TP1: ${activeSignal.tp1} | TP2: ${activeSignal.tp2} | TP3: ${activeSignal.tp3}
-🛑 SL: ${activeSignal.sl}
+🟡 ENTRY: ${setupObj.entry}
+🎯 TP1: ${setupObj.tp1} | TP2: ${setupObj.tp2} | TP3: ${setupObj.tp3}
+🛑 SL: ${setupObj.sl}
 📍 LIVE PRICE: ${fmt(livePrice, CONFIG[pair].digits)}
 📈 TRADE IS LIVE...${noteLine}`;
   renderSignalUpper(execText);
@@ -524,10 +518,9 @@ function executeAndRecordAutoOrManual(pair, setupObj, livePrice, mode="AUTO", ex
 }
 
 /* ================= ACTIVE TRADE MONITOR (checks TP/SL hits) ================= */
-const ACTIVE_CHECK_MS = MONITOR_EVERY_MS = 60_000; // reuse constant (1min)
+const ACTIVE_CHECK_MS = 60_000;
 async function startActiveMonitor(){
   if(activeMonitorId) return;
-  // run immediately and then interval
   await checkActiveTrade(); // immediate
   activeMonitorId = setInterval(checkActiveTrade, ACTIVE_CHECK_MS);
 }
@@ -541,7 +534,6 @@ async function checkActiveTrade(){
   let price;
   try{ price = await fetchLivePrice(pair); } catch(e){ return; }
   if(price===null) return;
-  // parse numeric numbers for comparison
   const numPrice = Number(price);
   const nums = {
     entry: Number(activeSignal.entry),
@@ -551,69 +543,56 @@ async function checkActiveTrade(){
     sl: Number(activeSignal.sl)
   };
   const dir = activeSignal.direction;
-  // For BUY: TP levels > entry, SL < entry. For SELL reverse.
+  // check hits
   if(dir === "BUY"){
-    // check TP1 -> TP2 -> TP3 (first one to hit that isn't already hit)
-    if(!activeSignal.hits.tp1 && ((dir==="BUY" && numPrice >= nums.tp1) || (dir==="SELL" && numPrice <= nums.tp1))){
-      activeSignal.hits.tp1 = true;
-      onLevelHit("TP1", nums.tp1, numPrice);
-      return;
-    }
-    if(!activeSignal.hits.tp2 && ((dir==="BUY" && numPrice >= nums.tp2) || (dir==="SELL" && numPrice <= nums.tp2))){
-      activeSignal.hits.tp2 = true;
-      onLevelHit("TP2", nums.tp2, numPrice);
-      return;
-    }
-    if(!activeSignal.hits.tp3 && ((dir==="BUY" && numPrice >= nums.tp3) || (dir==="SELL" && numPrice <= nums.tp3))){
-      activeSignal.hits.tp3 = true;
-      onLevelHit("TP3", nums.tp3, numPrice);
-      return;
-    }
-    if(!activeSignal.hits.sl && ((dir==="BUY" && numPrice <= nums.sl) || (dir==="SELL" && numPrice >= nums.sl))){
-      activeSignal.hits.sl = true;
-      onLevelHit("SL", nums.sl, numPrice);
-      return;
-    }
-  } else {
-    // SELL direction
-    if(!activeSignal.hits.tp1 && ((dir==="SELL" && numPrice <= nums.tp1) || (dir==="BUY" && numPrice >= nums.tp1))){
+    if(!activeSignal.hits.tp1 && numPrice >= nums.tp1){
       activeSignal.hits.tp1 = true; onLevelHit("TP1", nums.tp1, numPrice); return;
     }
-    if(!activeSignal.hits.tp2 && ((dir==="SELL" && numPrice <= nums.tp2) || (dir==="BUY" && numPrice >= nums.tp2))){
+    if(!activeSignal.hits.tp2 && numPrice >= nums.tp2){
       activeSignal.hits.tp2 = true; onLevelHit("TP2", nums.tp2, numPrice); return;
     }
-    if(!activeSignal.hits.tp3 && ((dir==="SELL" && numPrice <= nums.tp3) || (dir==="BUY" && numPrice >= nums.tp3))){
+    if(!activeSignal.hits.tp3 && numPrice >= nums.tp3){
       activeSignal.hits.tp3 = true; onLevelHit("TP3", nums.tp3, numPrice); return;
     }
-    if(!activeSignal.hits.sl && ((dir==="SELL" && numPrice >= nums.sl) || (dir==="BUY" && numPrice <= nums.sl))){
+    if(!activeSignal.hits.sl && numPrice <= nums.sl){
+      activeSignal.hits.sl = true; onLevelHit("SL", nums.sl, numPrice); return;
+    }
+  } else {
+    if(!activeSignal.hits.tp1 && numPrice <= nums.tp1){
+      activeSignal.hits.tp1 = true; onLevelHit("TP1", nums.tp1, numPrice); return;
+    }
+    if(!activeSignal.hits.tp2 && numPrice <= nums.tp2){
+      activeSignal.hits.tp2 = true; onLevelHit("TP2", nums.tp2, numPrice); return;
+    }
+    if(!activeSignal.hits.tp3 && numPrice <= nums.tp3){
+      activeSignal.hits.tp3 = true; onLevelHit("TP3", nums.tp3, numPrice); return;
+    }
+    if(!activeSignal.hits.sl && numPrice >= nums.sl){
       activeSignal.hits.sl = true; onLevelHit("SL", nums.sl, numPrice); return;
     }
   }
-  // update panel to show live price
+  // update panel price
   updateActivePanelPrice(numPrice);
-  saveActiveSignal(activeSignal); // persist hits if changed elsewhere
+  saveActiveSignal(activeSignal);
 }
 
 /* ================= ON LEVEL HIT HANDLER ================= */
 function onLevelHit(levelName, levelValue, livePrice){
-  // Compose message, voice, save to history, and if level is TP3 or SL decide closure
   const time = new Date().toLocaleTimeString("en-IN",{hour12:true});
   const pair = activeSignal.pair;
   const direction = activeSignal.direction;
   const msg = `${pair} ${levelName} HIT — LEVEL: ${fmt(levelValue, CONFIG[pair].digits)} | PRICE: ${fmt(livePrice, CONFIG[pair].digits)} | TIME: ${time}`;
-  // show big message
   renderSignalUpper(`✅ ${msg}`);
   speak(`${pair} ${levelName} hit`);
-  // push to history partial event
   pushHistory({pair, direction, result:`${levelName} HIT`, time, note: `price:${fmt(livePrice, CONFIG[pair].digits)}`});
-  // if SL or TP3 (final TP) then close trade fully
+  saveActiveSignal(activeSignal);
+  // if SL or TP3 -> finalize
   if(levelName === "SL"){
     finalizeActiveTrade("LOSS", levelName);
   } else if(levelName === "TP3"){
     finalizeActiveTrade("PROFIT - TP3", levelName);
   } else {
-    // for TP1/TP2 we just mark hit, announce and keep trade active
-    saveActiveSignal(activeSignal);
+    // keep active for next hits
     showActivePanel();
   }
 }
@@ -632,15 +611,12 @@ function finalizeActiveTrade(resultText, levelName){
     time: activeSignal.closedAt,
     note: `closed by ${levelName}`
   });
-  // show final message & voice
   const finalMsg = `TRADE CLOSED: ${activeSignal.pair} — ${resultText} — CLOSED AT ${activeSignal.closedAt}`;
   renderSignalUpper(finalMsg);
   speak(finalMsg);
-  showActivePanel(); // show closed status in panel
-  // stop monitoring after short delay and keep panel visible (user may close)
+  showActivePanel();
   stopActiveMonitor();
-  // optionally auto-clear after some time (left disabled). If you want auto-clear, uncomment below:
-  // setTimeout(()=>{ clearActiveSignal(); }, 60_000);
+  // leave panel visible until user clears or reset
 }
 
 /* ================= UTILS FOR ACTIVE PANEL ================= */
@@ -665,15 +641,20 @@ NOTE: ${s.note||""}
 }
 function updateActivePanelPrice(price){
   if(!activeSignal) return;
-  // show live price briefly in panel
-  activeTradeContent.innerHTML = activeTradeContent.innerHTML + `<div class="small">LIVE: ${fmt(price, CONFIG[activeSignal.pair].digits)}</div>`;
+  // append a short live price line (keeps panel concise)
+  const liveLine = `<div class="small">LIVE: ${fmt(price, CONFIG[activeSignal.pair].digits)}</div>`;
+  // ensure we don't grow infinitely: replace last live if exists
+  if(activeTradeContent.innerHTML.includes("LIVE:")){
+    activeTradeContent.innerHTML = activeTradeContent.innerHTML.replace(/<div class="small">LIVE:[\s\S]*?<\/div>$/,"") + liveLine;
+  } else {
+    activeTradeContent.innerHTML = activeTradeContent.innerHTML + liveLine;
+  }
 }
 
 /* ================= MANUAL CLOSE/USER ACTIONS ================= */
 function closeActiveByUser(){
   if(!activeSignal) return;
   finalizeActiveTrade("CLOSED BY USER", "USER");
-  // also clear persisted active after small delay so panel shows closed then cleared
   setTimeout(()=>{ clearActiveSignal(); renderHistory(); }, 3000);
 }
 function focusOnActive(){
@@ -786,8 +767,6 @@ function resetSignal(){
   if(pendingTimer){ clearTimeout(pendingTimer); pendingTimer = null; }
   activeSignal = null;
   saveActiveSignal(null);
-  // keep tradeStats (daily) intact; if want to reset counters uncomment:
-  // tradeStats = createEmptyStats(); saveStats(tradeStats);
   renderSignalUpper("🔄 RESET DONE. WAITING FOR SIGNAL...");
   speak("Reset done");
   updateDebugBadge();
@@ -831,9 +810,7 @@ renderHistory();
   const a = loadActiveSignal();
   if(a){
     activeSignal = a;
-    // if closed already, just show panel as closed
     showActivePanel();
-    // if running, start monitor
     if(activeSignal.status === "RUNNING"){
       startActiveMonitor();
     }
