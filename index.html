@@ -3,37 +3,33 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>TS Angel Forex AI TEST VERSION — Full</title>
+  <title>TS Angel Gold Master — Final</title>
   <style>
     html,body{margin:0;padding:0;overflow-x:hidden;font-family:Arial,sans-serif;background:black;color:white;text-transform:uppercase}
     canvas#starfield{position:fixed;top:0;left:0;width:100%;height:100%;z-index:-1}
-    body{text-align:center;padding:20px}
+    body{text-align:center;padding:18px}
     h1{color:#00ffe7;animation:neon-flicker 1.5s infinite}
     #timeDisplay{font-size:1.1rem;color:#ffcc00;animation:neon-flicker 2s infinite}
-    select,button{padding:12px 20px;margin:10px;font-size:1rem;border-radius:6px;background:#111;color:#00ffea;border:2px solid #00ffea;cursor:pointer;animation:glow-pulse 2s infinite}
+    select,button{padding:10px 16px;margin:8px;font-size:0.95rem;border-radius:8px;background:#0e0e0e;color:#00ffea;border:2px solid #00ffea;cursor:pointer}
     button:hover{background:#00ffea;color:black}
-    iframe{width:100%;height:500px;border:none;margin-top:25px;border-radius:10px;box-shadow:0 0 20px #00ffe7;animation:glow-pulse 3s infinite}
-    .signal-box{margin-top:25px;background:#111;padding:20px;border-radius:10px;font-size:1.05rem;color:#ffcc00;animation:glow-pulse 1.5s infinite;white-space:pre-line;line-height:1.4}
-    .watermark{margin-top:40px;font-size:1.1rem;color:#00ffe7;animation:neon-flicker 2s infinite}
-    .levels a{color:#00ffea;text-decoration:underline;cursor:pointer;margin:0 6px;display:inline-block}
-    @keyframes neon-flicker{0%,100%{text-shadow:0 0 5px #0ff,0 0 10px #0ff,0 0 20px #0ff}50%{text-shadow:0 0 2px #0ff,0 0 5px #0ff}}
-    @keyframes glow-pulse{0%,100%{box-shadow:0 0 10px #00ffe7,0 0 20px #00ffe7}50%{box-shadow:0 0 5px #00ffe7,0 0 10px #00ffe7}}
-    .bar{display:flex;flex-wrap:wrap;justify-content:center;gap:8px}
-    /* Debug badge */
+    iframe{width:100%;height:480px;border:none;margin-top:18px;border-radius:10px;box-shadow:0 0 20px #00ffe7;}
+    .signal-box{margin-top:18px;background:#111;padding:18px;border-radius:10px;font-size:1.05rem;color:#ffcc00;white-space:pre-line;line-height:1.4}
+    .watermark{margin-top:24px;font-size:1.05rem;color:#00ffe7}
+    .bar{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;align-items:center}
     #debugBadge{position:fixed;right:12px;top:12px;background:rgba(0,0,0,0.6);border:1px solid #00ffea;color:#00ffea;padding:8px 10px;border-radius:8px;font-size:0.85rem;z-index:9999;text-align:left;min-width:170px}
     #midnightToast{position:fixed;left:50%;transform:translateX(-50%);bottom:24px;background:#111;padding:12px 18px;border-radius:8px;border:1px solid #00ffe7;color:#ffcc00;z-index:9999;display:none}
+    .levels a{color:#00ffea;text-decoration:underline;cursor:pointer;margin:0 6px;display:inline-block}
+    @keyframes neon-flicker{0%,100%{text-shadow:0 0 6px #0ff,0 0 12px #0ff,0 0 24px #0ff}50%{text-shadow:0 0 2px #0ff,0 0 6px #0ff}}
   </style>
 </head>
 <body>
   <canvas id="starfield"></canvas>
-  <h1>🚀 TS ANGEL FOREX AI TEST VERSION</h1>
+  <h1>🚀 TS ANGEL GOLD MASTER STRATEGY — FINAL</h1>
   <p id="timeDisplay">⏰ CURRENT INDIAN TIME:</p>
 
   <div class="bar">
     <select id="pairSelect" title="PAIR">
-      <option value="BTCUSD">BTCUSD</option>
       <option value="XAUUSD" selected>XAUUSD</option>
-      <option value="USOIL">USOIL</option>
     </select>
 
     <select id="modeSelect" title="MODE">
@@ -41,540 +37,495 @@
       <option value="AUTO">AUTO</option>
     </select>
 
-    <button onclick="playClick(); generateSignal()">📡 GENERATE SIGNAL</button>
-    <button onclick="playClick(); resetSignal()">♻️ RESET</button>
+    <button id="onBtn">🔴 ANGEL ON</button>
+    <button id="offBtn">⚫ ANGEL OFF</button>
+    <button onclick="generateSignal()">📡 GENERATE SIGNAL</button>
+    <button onclick="resetSignal()">♻️ RESET</button>
   </div>
 
-  <div class="signal-box" id="signalBox">🔍 WAITING FOR SIGNAL...</div>
-  <iframe id="tvChart"></iframe>
-  <div class="watermark">💡 CREATED BY TRADER SUMON</div>
-  <audio id="clickSound" src="https://assets.mixkit.co/sfx/preview/mixkit-game-click-1114.mp3"></audio>
+  <div class="signal-box" id="signalBox">🔍 WAITING FOR GOLD STRATEGY SIGNAL...</div>
 
-  <!-- Debug badge & midnight toast -->
+  <iframe id="tvChart"></iframe>
+
+  <div class="watermark">💡 CREATED BY TRADER SUMON</div>
+
+  <audio id="clickSound" src="https://assets.mixkit.co/sfx/preview/mixkit-game-click-1114.mp3"></audio>
   <div id="debugBadge">LOADING STATS...</div>
   <div id="midnightToast"></div>
 
 <script>
-/* ================= DOM ================= */
-const pairSelect   = document.getElementById("pairSelect");
-const modeSelect   = document.getElementById("modeSelect");
-const tvChart      = document.getElementById("tvChart");
-const signalBox    = document.getElementById("signalBox");
-const timeDisplay  = document.getElementById("timeDisplay");
-const clickSound   = document.getElementById("clickSound");
-const debugBadge   = document.getElementById("debugBadge");
-const midnightToast= document.getElementById("midnightToast");
+/* ================== CONFIG ================== */
+/* TwelveData key used earlier in your code; keep rate limits in mind */
+const TD_KEY = "cd96961a49e242fe939a80866e70c57d";
 
-/* ================= STATE ================= */
-let activeSignal   = null;
-let pendingTimer   = null;
-let autoMonitorId  = null;
-/* MODIFIED: active trade persistence */
-const ACTIVE_KEY = "ts_angel_active_trade_v1";
-
-/* ================= PERSISTED STATS (daily/session counters) ================= */
-const STATS_KEY = "ts_angel_trade_stats_v1";
-const SUMMARY_KEY = "ts_angel_daily_summaries_v1"; // last 7 days
-function loadStats(){
-  try{
-    const raw = localStorage.getItem(STATS_KEY);
-    if(!raw) return createEmptyStats();
-    const obj = JSON.parse(raw);
-    const today = getISTDateString(new Date());
-    if(obj.date !== today) return createEmptyStats();
-    return obj;
-  }catch(e){ return createEmptyStats(); }
-}
-function createEmptyStats(){
-  const today = getISTDateString(new Date());
-  return { date: today, total: 0, perSession: { ASIA:0, LONDON:0, NEWYORK:0 }, perPair: {} };
-}
-function saveStats(s){ localStorage.setItem(STATS_KEY, JSON.stringify(s)); logStatsToConsole(); updateDebugBadge(); }
-let tradeStats = loadStats();
-
-/* ================= CONFIG ================= */
 const CONFIG = {
   XAUUSD: {
     tv: "OANDA:XAUUSD",
-    fetch: async () => {
-      const res = await fetch("https://api.twelvedata.com/price?symbol=XAU/USD&apikey=cd96961a49e242fe939a80866e70c57d");
-      const data = await res.json();
-      return parseFloat(data.price);
-    },
     pivot: 3377.28,
-    bias: 3350.50,
     tolerance: 0.5,
-    zones: (price) => {
-      const momentumSell = price < 3377.28;
-      const levelsSell = [3372,3370,3365,3360,3356,3351];
-      const levelsBuy  = [3381,3385,3389,3394];
-      return momentumSell ? levelsSell : levelsBuy;
-    },
-    tps: {tp1:5,tp2:10,tp3:15},
-    slGap:4,
-    digits:2,
+    tps: {tp1:20, tp2:40, tp3:80}, // pips (we treat 1 pip = 0.1 so adapted below)
+    slPips: 18, // 15-20 recommended
+    digits: 2,
     minTradesPerDay: 1,
-    maxTradesPerDay: 3,
+    maxTradesPerDay: 2,
     maxTradesPerSession: 1,
     earlyEntryPips: 7,
-    earlyEntryPercent: 0.15
-  },
-  BTCUSD: {
-    tv: "BINANCE:BTCUSDT",
-    fetch: async () => {
-      const res = await fetch("https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT");
-      const data = await res.json();
-      return parseFloat(data.price);
-    },
-    pivot: 65000,
-    bias: 60000,
-    tolerance: 20,
-    zones: (price) => {
-      const step = 50;
-      const base = Math.round(price / step) * step;
-      const momentumSell = price < 65000;
-      const ups  = [base + step, base + 2*step, base + 3*step];
-      const downs = [base - step, base - 2*step, base - 3*step, base - 4*step];
-      return momentumSell ? downs : ups;
-    },
-    tps: {tp1:100,tp2:200,tp3:300},
-    slGap:80,
-    digits:2,
-    minTradesPerDay: 1,
-    maxTradesPerDay: 3,
-    maxTradesPerSession: 1,
-    earlyEntryPips: 150,
-    earlyEntryPercent: 0.20
-  },
-  USOIL: {
-    tv: "TVC:USOIL",
-    fetch: async () => {
-      try {
-        const r1 = await fetch("https://api.twelvedata.com/price?symbol=WTICOUSD&apikey=cd96961a49e242fe939a80866e70c57d");
-        const d1 = await r1.json();
-        if (d1 && d1.price) return parseFloat(d1.price);
-      } catch(e){}
-      try {
-        const r2 = await fetch("https://api.twelvedata.com/price?symbol=BRN/USD&apikey=cd96961a49e242fe939a80866e70c57d");
-        const d2 = await r2.json();
-        if (d2 && d2.price) return parseFloat(d2.price);
-      } catch(e){}
-      throw new Error("OIL price fetch failed");
-    },
-    pivot: 80,
-    bias: 78,
-    tolerance: 0.2,
-    zones: (price) => {
-      const step = 0.5;
-      const base = Math.round(price / step) * step;
-      const momentumSell = price < 80;
-      const ups   = [base + step, base + 2*step, base + 3*step];
-      const downs = [base - step, base - 2*step, base - 3*step, base - 4*step];
-      return momentumSell ? downs : ups;
-    },
-    tps: {tp1:0.5,tp2:1.0,tp3:1.5},
-    slGap:0.4,
-    digits:2,
-    minTradesPerDay: 1,
-    maxTradesPerDay: 3,
-    maxTradesPerSession: 1,
-    earlyEntryPips: 0.5,
-    earlyEntryPercent: 0.20
+    earlyEntryPercent: 0.15,
+    // how many bars to fetch for indicators
+    barsH1: 250,
+    barsM15: 200,
+    barsM5: 100
   }
 };
 
-/* ================= AUDIO/TTS ================= */
-function speak(text){
-  try{
-    const u = new SpeechSynthesisUtterance(text);
-    u.lang = 'bn-IN';
-    const v = speechSynthesis.getVoices();
-    const fv = v.find(x=>x.lang==='bn-IN' && x.name && x.name.toLowerCase().includes('female'));
-    if(fv) u.voice = fv;
-    speechSynthesis.speak(u);
-  }catch(e){}
-}
-function playClick(){ try{ clickSound.play(); }catch(e){} }
+/* =============== DOM =============== */
+const pairSelect = document.getElementById("pairSelect");
+const modeSelect = document.getElementById("modeSelect");
+const tvChart = document.getElementById("tvChart");
+const signalBox = document.getElementById("signalBox");
+const timeDisplay = document.getElementById("timeDisplay");
+const clickSound = document.getElementById("clickSound");
+const debugBadge = document.getElementById("debugBadge");
+const midnightToast = document.getElementById("midnightToast");
+const onBtn = document.getElementById("onBtn");
+const offBtn = document.getElementById("offBtn");
 
-/* ================= CHART LOAD ================= */
-pairSelect.addEventListener("change", () => { loadChart(); renderSignalUpper("🔄 PAIR CHANGED. WAITING FOR SIGNAL..."); });
-function loadChart(){
-  const pair = pairSelect.value;
-  const tv = CONFIG[pair].tv;
-  tvChart.src = `https://s.tradingview.com/widgetembed/?frameElementId=tvChart&symbol=${encodeURIComponent(tv)}&interval=5&theme=dark&style=1&timezone=Asia/Kolkata&withdateranges=1&studies=[]&toolbarbg=rgba(0,0,0,1)&hide_side_toolbar=0&allow_symbol_change=1&saveimage=1&details=1&hotlist=1&calendar=1&drawings_access=%7B%22type%22%3A%22black%22%7D`;
-}
-loadChart();
+/* =============== STATE =============== */
+let activeSignal = null;
+let pendingTimer = null;
+let autoMonitorId = null;
+let autoIsOn = false;
+const ACTIVE_KEY = "ts_angel_active_trade_v1";
+const STATS_KEY = "ts_angel_trade_stats_v1";
+const SUMMARY_KEY = "ts_angel_daily_summaries_v1";
 
-/* ================= HELPERS ================= */
-function fmt(n,d=2){ return Number(n).toFixed(d) }
-function renderSignalUpper(text){ signalBox.innerHTML = String(text).toUpperCase().replace(/\n/g,"<br>") }
-function near(a,b,tol){ return Math.abs(a-b) <= tol }
-function renderLevelsClickable(levels,digits=2){
-  if(!levels||!levels.length) return "";
-  return `<div class="levels">LEVELS: ${levels.map(l => `<a onclick="tapLevel(${l})">${fmt(l,digits)}</a>`).join(" ")}</div>`;
-}
+let tradeStats = loadStats();
+
+/* =============== UTIL =============== */
 function getISTDateString(d){
   const utc = d.getTime() + (d.getTimezoneOffset() * 60000);
   const istOffset = 5.5 * 60 * 60 * 1000;
   const ist = new Date(utc + istOffset);
   return ist.toISOString().split('T')[0];
 }
-function getSessionName(date){
-  const utc = date.getTime() + (date.getTimezoneOffset() * 60000);
-  const istOffset = 5.5 * 60 * 60 * 1000;
-  const ist = new Date(utc + istOffset);
-  const h = ist.getHours();
-  if(h >= 0 && h <= 8) return "ASIA";
-  if(h >= 9 && h <= 16) return "LONDON";
-  return "NEWYORK";
-}
+function fmt(n, d=2){ return Number(n).toFixed(d); }
+function near(a,b,tol){ return Math.abs(a-b) <= tol; }
+function playClick(){ try{ clickSound.play(); }catch(e){} }
+function createEmptyStats(){ const today = getISTDateString(new Date()); return { date: today, total: 0, perSession: { ASIA:0, LONDON:0, NEWYORK:0 }, perPair: {} }; }
+function loadStats(){ try{ const raw = localStorage.getItem(STATS_KEY); if(!raw) return createEmptyStats(); const obj = JSON.parse(raw); if(obj.date !== getISTDateString(new Date())) return createEmptyStats(); return obj; }catch(e){ return createEmptyStats(); } }
+function saveStats(s){ localStorage.setItem(STATS_KEY, JSON.stringify(s)); updateDebugBadge(); }
+function saveActive(){ try{ localStorage.setItem(ACTIVE_KEY, JSON.stringify(activeSignal)); }catch(e){} }
+function loadActive(){ try{ const raw = localStorage.getItem(ACTIVE_KEY); if(!raw) return null; const obj = JSON.parse(raw); return obj && obj.status ? obj : null; }catch(e){ return null; } }
+function clearActive(){ try{ localStorage.removeItem(ACTIVE_KEY); }catch(e){} }
+function updateDebugBadge(){ const s = tradeStats || createEmptyStats(); const today = s.date || getISTDateString(new Date()); const total = s.total || 0; const asia = s.perSession.ASIA || 0, lon = s.perSession.LONDON || 0, ny = s.perSession.NEWYORK || 0; debugBadge.innerHTML = `DATE: ${today}<br>TOTAL: ${total}<br>ASIA:${asia} LONDON:${lon} NY:${ny}`; }
 
-/* ================= DEBUG & MIDNIGHT SUMMARY HELPERS ================= */
-function logStatsToConsole(){
-  try{ console.log("[TS-ANGEL] tradeStats:", JSON.stringify(tradeStats)); }catch(e){}
-}
-function updateDebugBadge(){
-  const s = tradeStats;
-  const today = s.date || getISTDateString(new Date());
-  const asia = s.perSession.ASIA||0, lon = s.perSession.LONDON||0, ny = s.perSession.NEWYORK||0;
-  debugBadge.innerHTML = `DATE: ${today}<br>TOTAL: ${s.total}<br>ASIA:${asia} LONDON:${lon} NY:${ny}`;
-}
-function loadSummaries(){ try{ const raw = localStorage.getItem(SUMMARY_KEY); return raw ? JSON.parse(raw) : []; }catch(e){ return []; } }
-function saveSummaryObject(obj){
-  const arr = loadSummaries();
-  arr.unshift(obj);
-  const trimmed = arr.slice(0,7);
-  localStorage.setItem(SUMMARY_KEY, JSON.stringify(trimmed));
-}
-function showMidnightToast(text){
-  midnightToast.innerHTML = text;
-  midnightToast.style.display = "block";
-  setTimeout(()=>{ midnightToast.style.display = "none"; }, 12_000);
-}
-function scheduleMidnightJob(){
-  const now = new Date();
-  const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
-  const istOffset = 5.5 * 60 * 60 * 1000;
-  const istNow = new Date(utc + istOffset);
-  const nextMid = new Date(istNow);
-  nextMid.setHours(24,0,5,0);
-  const msUntil = nextMid.getTime() - istNow.getTime();
-  setTimeout(()=>{ runMidnightSummary(); setInterval(runMidnightSummary, 24*60*60*1000); }, msUntil);
-}
-function runMidnightSummary(){
+/* =============== TTS =============== */
+function speak(text){
   try{
-    const s = tradeStats;
-    const summary = {
-      date: s.date || getISTDateString(new Date(Date.now() + 5.5*3600000)),
-      total: s.total || 0,
-      perSession: s.perSession || {ASIA:0,LONDON:0,NEWYORK:0},
-      perPair: s.perPair || {}
-    };
-    saveSummaryObject(summary);
-    const msg = `MIDNIGHT SUMMARY — ${summary.date}\nTOTAL: ${summary.total} | ASIA:${summary.perSession.ASIA||0} LONDON:${summary.perSession.LONDON||0} NEWYORK:${summary.perSession.NEWYORK||0}`;
-    renderSignalUpper(msg);
-    speak(`Aajker report. Total trades ${summary.total}. Asia ${summary.perSession.ASIA||0}, London ${summary.perSession.LONDON||0}, New York ${summary.perSession.NEWYORK||0}`);
-    showMidnightToast(msg.replace(/\n/g,"<br>"));
-    tradeStats = createEmptyStats();
-    saveStats(tradeStats);
-  }catch(e){ console.error("Midnight summary error",e); }
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'bn-IN';
+    const voices = speechSynthesis.getVoices();
+    const bn = voices.find(v=>v.lang && v.lang.toLowerCase().includes('bn'));
+    if(bn) u.voice = bn;
+    u.rate = 1;
+    speechSynthesis.cancel();
+    speechSynthesis.speak(u);
+  }catch(e){ console.error("TTS", e); }
 }
 
-/* ================= ACTIVE TRADE PERSIST (MODIFIED) ================= */
-function saveActive(){ localStorage.setItem(ACTIVE_KEY, JSON.stringify(activeSignal)); }
-function loadActive(){
+/* =============== CHART LOAD =============== */
+pairSelect.addEventListener("change", ()=>{ loadChart(); renderSignalUpper("🔄 PAIR CHANGED. WAITING FOR SIGNAL..."); });
+function loadChart(){ const tv = CONFIG.XAUUSD.tv; tvChart.src = `https://s.tradingview.com/widgetembed/?frameElementId=tvChart&symbol=${encodeURIComponent(tv)}&interval=5&theme=dark&style=1&timezone=Asia/Kolkata&allow_symbol_change=0`; }
+loadChart();
+
+/* =============== Price / OHLC Fetch Helpers =============== */
+/* Uses TwelveData time_series endpoint — limited rate; you can replace with other provider */
+async function fetchOHLC(symbol, interval, outputCount){
+  // symbol examples: XAU/USD for TwelveData
+  const sym = symbol === "XAUUSD" ? "XAU/USD" : symbol;
+  const url = `https://api.twelvedata.com/time_series?symbol=${encodeURIComponent(sym)}&interval=${interval}&outputsize=${outputCount}&format=JSON&apikey=${TD_KEY}`;
   try{
-    const raw = localStorage.getItem(ACTIVE_KEY);
-    if(!raw) return null;
-    const obj = JSON.parse(raw);
-    return obj && obj.status && obj.pair ? obj : null;
-  }catch(e){ return null; }
+    const r = await fetch(url);
+    const j = await r.json();
+    if(!j || !j.values) return null;
+    // values are newest first — convert to arrays oldest->newest
+    const values = j.values.slice().reverse();
+    return values.map(v => ({ time: v.datetime, open: parseFloat(v.open), high: parseFloat(v.high), low: parseFloat(v.low), close: parseFloat(v.close) }));
+  }catch(e){ console.error("OHLC fetch err", e); return null; }
 }
-function clearActive(){ localStorage.removeItem(ACTIVE_KEY); }
-
-/* ================= MANUAL TAP ================= */
-async function tapLevel(level){
-  if(activeSignal){ renderSignalUpper("⏳ WAIT: A SIGNAL IS ALREADY ACTIVE!"); speak("Wait, a signal is already active"); return; }
-  const pair = pairSelect.value;
-  const cfg  = CONFIG[pair];
-  const session = getSessionName(new Date());
-  if(tradeStats.perSession[session] >= cfg.maxTradesPerSession){
-    renderSignalUpper(`🚫 SESSION LIMIT REACHED FOR ${session}.`); speak("Session limit reached");
-    return;
-  }
-  if(tradeStats.total >= cfg.maxTradesPerDay){
-    renderSignalUpper("🚫 DAILY MAX TRADES REACHED."); speak("Daily maximum trades reached");
-    return;
-  }
-
-  let price;
-  try{ price = await cfg.fetch(); } catch(e){ renderSignalUpper("❌ ERROR FETCHING LIVE PRICE!"); return; }
-  const direction = (price < cfg.pivot) ? "SELL" : "BUY";
-  const entry = fmt(level,cfg.digits);
-  const tp1 = direction==="BUY" ? fmt(level+cfg.tps.tp1,cfg.digits) : fmt(level-cfg.tps.tp1,cfg.digits);
-  const tp2 = direction==="BUY" ? fmt(level+cfg.tps.tp2,cfg.digits) : fmt(level-cfg.tps.tp2,cfg.digits);
-  const tp3 = direction==="BUY" ? fmt(level+cfg.tps.tp3,cfg.digits) : fmt(level-cfg.tps.tp3,cfg.digits);
-  const sl  = direction==="BUY" ? fmt(level-cfg.slGap,cfg.digits) : fmt(level+cfg.slGap,cfg.digits);
-  const time= new Date().toLocaleTimeString("en-IN",{hour12:true});
-  activeSignal = {pair,direction,entry,tp1,tp2,tp3,sl,time,mode:"MANUAL-TAP",status:"RUNNING"};
-  tradeStats.total += 1;
-  tradeStats.perSession[session] = (tradeStats.perSession[session]||0)+1;
-  tradeStats.perPair[pair] = (tradeStats.perPair[pair]||0)+1;
-  saveStats(tradeStats);
-  saveActive(); /* MODIFIED */
-
-  const txt =
-`📊 ${pair}: ${direction}
-⚙️ MODE: MANUAL-TAP
-🟡 ENTRY: ${entry}
-🎯 TP1: ${tp1} | TP2: ${tp2} | TP3: ${tp3}
-🛑 SL: ${sl}
-📍 LIVE PRICE: ${fmt(price,cfg.digits)}
-📈 TRADE IS LIVE...`;
-  renderSignalUpper(txt);
-  speak(`${pair} ${direction}. Entry ${entry}. TP1 ${tp1}, TP2 ${tp2}, SL ${sl}`);
+async function fetchPrice(symbol){
+  // quick price endpoint
+  try{
+    const res = await fetch(`https://api.twelvedata.com/price?symbol=${encodeURIComponent(symbol==='XAUUSD'?'XAU/USD':symbol)}&apikey=${TD_KEY}`);
+    const data = await res.json();
+    if(!data || !data.price) return null;
+    return parseFloat(data.price);
+  }catch(e){ console.error("price fetch err", e); return null; }
 }
 
-/* ================= FETCH LIVE PRICE (wrapper) ================= */
-async function fetchLivePrice(pair){
-  try{ return await CONFIG[pair].fetch(); } catch(e){ renderSignalUpper("❌ ERROR FETCHING LIVE PRICE!"); console.error(e); return null; }
+/* =============== Indicators (EMA, RSI, Market Structure, FVG, OB, engulfing) =============== */
+function computeEMA(arr, period){
+  const k = 2/(period+1);
+  let ema = [];
+  arr.forEach((v,i)=>{
+    if(i===0) ema.push(v);
+    else ema.push((v - ema[i-1]) * k + ema[i-1]);
+  });
+  return ema;
 }
-
-/* ================= GET SETUP ================= */
-function getSetup(pair,price){
-  const cfg = CONFIG[pair];
-  const momentumSell = price < cfg.pivot;
-  const direction = momentumSell ? "SELL" : "BUY";
-  const entryZones = cfg.zones(price);
-  const inZone = entryZones.some(l => near(price, l, cfg.tolerance));
-  const nearest = entryZones.slice().sort((a,b)=>Math.abs(price-a)-Math.abs(price-b))[0];
-  const entry = fmt(nearest??price,cfg.digits);
-  const tp1 = direction==="BUY" ? fmt(Number(entry)+cfg.tps.tp1,cfg.digits) : fmt(Number(entry)-cfg.tps.tp1,cfg.digits);
-  const tp2 = direction==="BUY" ? fmt(Number(entry)+cfg.tps.tp2,cfg.digits) : fmt(Number(entry)-cfg.tps.tp2,cfg.digits);
-  const tp3 = direction==="BUY" ? fmt(Number(entry)+cfg.tps.tp3,cfg.digits) : fmt(Number(entry)-cfg.tps.tp3,cfg.digits);
-  const sl  = direction==="BUY" ? fmt(Number(entry)-cfg.slGap,cfg.digits) : fmt(Number(entry)+cfg.slGap,cfg.digits);
-  return {direction,entryZones,inZone,entry,tp1,tp2,tp3,sl,nearest};
+function emaSeriesFromCloses(closes, period){
+  if(closes.length < period) return null;
+  const ema = computeEMA(closes, period);
+  return ema[ema.length-1];
 }
-
-/* ================= MANUAL GENERATE BUTTON ================= */
-async function generateSignal(){
-  const now = new Date();
-  const pair = pairSelect.value;
-  const day  = now.getDay();
-  const time = now.toLocaleTimeString("en-IN",{hour12:true});
-
-  if((pair==="XAUUSD") && (day===6||day===0)){ renderSignalUpper("⚠️ GOLD MARKET IS CLOSED TODAY."); speak("Gold market is closed today"); return; }
-  if(activeSignal){ renderSignalUpper("⏳ WAIT: A SIGNAL IS ALREADY ACTIVE!"); speak("Wait, a signal is already active"); return; }
-
-  if(tradeStats.date !== getISTDateString(new Date())) {
-    tradeStats = createEmptyStats();
-    saveStats(tradeStats);
+function computeRSI(closes, period=14){
+  if(closes.length < period+1) return null;
+  let gains=0, losses=0;
+  for(let i=1;i<=period;i++){
+    const diff = closes[closes.length - 1 - (period - i)] - closes[closes.length - 2 - (period - i)];
+    if(diff>0) gains += diff; else losses += Math.abs(diff);
   }
-
-  const session = getSessionName(new Date());
-  const cfg = CONFIG[pair];
-
-  if(tradeStats.perSession[session] >= cfg.maxTradesPerSession){
-    renderSignalUpper(`🚫 SESSION LIMIT REACHED FOR ${session}.`);
-    speak("Session limit reached");
-    return;
-  }
-  if(tradeStats.total >= cfg.maxTradesPerDay){
-    renderSignalUpper("🚫 DAILY MAX TRADES REACHED.");
-    speak("Daily maximum trades reached");
-    return;
-  }
-
-  const price = await fetchLivePrice(pair);
-  if(!price) return;
-  const s = getSetup(pair,price);
-
-  if(s.inZone){
-    executeAndRecordAutoOrManual(pair, s, price, "INTRADAY");
-    return;
-  }
-
-  let allowEarly = false;
-  let earlyReason = "";
-  const nearest = s.nearest ?? price;
-  const diff = Math.abs(price - nearest);
-  if(cfg.earlyEntryPips && diff <= cfg.earlyEntryPips){
-    allowEarly = true; earlyReason = `PRICE ${fmt(diff,cfg.digits)} AWAY (PIPS TOLERANCE)`;
-  } else if(cfg.earlyEntryPercent){
-    const pct = (diff/price)*100;
-    if(pct <= cfg.earlyEntryPercent){
-      allowEarly = true; earlyReason = `PRICE ${fmt(pct,3)}% AWAY (PCT TOLERANCE)`;
+  let avgGain = gains/period, avgLoss = losses/period;
+  if(avgLoss===0) return 100;
+  const rs = avgGain/avgLoss;
+  const rsi = 100 - (100/(1+rs));
+  return rsi;
+}
+function detectMarketStructure(closes, highs, lows){
+  // simple HH/HL vs LH/LL using last two swings
+  if(highs.length < 3 || lows.length < 3) return null;
+  const lastHigh = highs[highs.length-1], prevHigh = highs[highs.length-2];
+  const lastLow = lows[lows.length-1], prevLow = lows[lows.length-2];
+  if(lastHigh > prevHigh && lastLow > prevLow) return 'BULL';
+  if(lastHigh < prevHigh && lastLow < prevLow) return 'BEAR';
+  return null;
+}
+function findFVG(bars, direction){
+  // simplistic 3-candle FVG detection scanning from recent
+  for(let i=0;i<bars.length-2;i++){
+    const a = bars[i], b = bars[i+1], c = bars[i+2];
+    if(direction==='BUY'){
+      if(a.high < c.low) return {low: b.low, high: b.high};
+    } else {
+      if(a.low > c.high) return {low: b.low, high: b.high};
     }
   }
-  if(!allowEarly && tradeStats.total < cfg.minTradesPerDay){
-    const extendedTol = (cfg.earlyEntryPips || (price*cfg.earlyEntryPercent/100)) * 2;
-    const diff2 = Math.abs(price - nearest);
-    if(diff2 <= extendedTol){
-      allowEarly = true; earlyReason = `FALLBACK MIN-TRADE MODE — EXTENDED TOLERANCE ${fmt(extendedTol,cfg.digits)}`;
+  return null;
+}
+function lastOrderBlock(bars, direction){
+  // naive OB detection: opposite candle before impulsive candle
+  for(let i=bars.length-3;i>=0;i--){
+    const cur = bars[i], next = bars[i+1];
+    const bodyCur = Math.abs(cur.close - cur.open);
+    const bodyNext = Math.abs(next.close - next.open);
+    if(direction==='BUY'){
+      if(cur.close < cur.open && (next.close - next.open) > bodyCur*1.2) return {low: Math.min(cur.open,cur.close), high: Math.max(cur.open,cur.close)};
+    } else {
+      if(cur.close > cur.open && (cur.open - next.close) > bodyCur*1.2) return {low: Math.min(cur.open,cur.close), high: Math.max(cur.open,cur.close)};
     }
   }
-
-  if(!allowEarly){
-    const msg =
-`❌ NO VALID TRADE SETUP NOW.
-PRICE NOT NEAR ANY KEY ZONE.
-CURRENT: ${fmt(price, CONFIG[pair].digits)}
-${renderLevelsClickable(s.entryZones, CONFIG[pair].digits)}`;
-    signalBox.innerHTML = msg.toUpperCase().replace(/\n/g,"<br>");
-    speak("No trade now. Price not near level zone.");
-    return;
+  return null;
+}
+function engulfingOrRejection(lastBar, prevBar, direction){
+  // M5 candle confirmation: bullish engulfing or long wick rejection
+  if(!lastBar || !prevBar) return false;
+  if(direction==='BUY'){
+    if(lastBar.close > lastBar.open && prevBar.close < prevBar.open && lastBar.close >= prevBar.open && lastBar.open <= prevBar.close) return true;
+    const lowerWick = Math.min(lastBar.open,lastBar.close) - lastBar.low;
+    const body = Math.abs(lastBar.close - lastBar.open);
+    if(lowerWick > body*1.2) return true;
+  } else {
+    if(lastBar.close < lastBar.open && prevBar.close > prevBar.open && lastBar.open >= prevBar.close && lastBar.close <= prevBar.open) return true;
+    const upperWick = lastBar.high - Math.max(lastBar.open,lastBar.close);
+    const body = Math.abs(lastBar.close - lastBar.open);
+    if(upperWick > body*1.2) return true;
   }
-
-  const earlyEntryObj = Object.assign({}, s);
-  earlyEntryObj.entry = fmt(s.nearest ?? price, cfg.digits);
-  executeAndRecordAutoOrManual(pair, earlyEntryObj, price, "EARLY (REDUCED RISK)", earlyReason);
+  return false;
 }
 
-/* ================= EXECUTION & RECORDING (shared) ================= */
-function executeAndRecordAutoOrManual(pair, setupObj, livePrice, mode="AUTO", extraNote=""){
+/* =============== Strategy Core: bias_h1 & confluences_m15 & m5_confirm =============== */
+async function computeBiasAndConfluences(){
+  // fetch H1 & M15 & M5 OHLCs
+  const [h1, m15, m5] = await Promise.all([
+    fetchOHLC("XAUUSD", "60min", CONFIG.XAUUSD.barsH1),
+    fetchOHLC("XAUUSD", "15min", CONFIG.XAUUSD.barsM15),
+    fetchOHLC("XAUUSD", "5min", CONFIG.XAUUSD.barsM5)
+  ]);
+  if(!h1 || !m15) return {bias:null, conf:[], details:null, h1:null, m15:null, m5:null};
+
+  // H1 bias: EMA200 + market structure
+  const h1Closes = h1.map(b=>b.close), h1Highs = h1.map(b=>b.high), h1Lows = h1.map(b=>b.low);
+  const ema200 = emaSeriesFromCloses(h1Closes, 200);
+  const ms = detectMarketStructure(h1Closes, h1Highs, h1Lows);
+  const lastH1 = h1[h1.length-1];
+  let bias = null;
+  if(ema200 && lastH1.close > ema200 && ms==='BULL') bias = 'BUY';
+  if(ema200 && lastH1.close < ema200 && ms==='BEAR') bias = 'SELL';
+
+  // M15 confluences: RSI + FVG + OB + SR
+  const m15Closes = m15.map(b=>b.close);
+  const rsiVal = computeRSI(m15Closes, 14);
+  const lastM15 = m15[m15.length-1];
+  const fvg = findFVG(m15, bias || (lastM15.close > lastM15.open ? 'BUY':'SELL'));
+  const ob = lastOrderBlock(m15, bias || (lastM15.close > lastM15.open ? 'BUY':'SELL'));
+
+  // S/R proximity: simple recent highs/lows
+  const srLevels = [...new Set(m15.slice(-30).flatMap(b=>[b.high,b.low]).sort((a,b)=>a-b))].slice(-6);
+  const price = lastM15.close;
+  let srMatch = null;
+  for(const lvl of srLevels){
+    if(Math.abs(lvl - price) <= (CONFIG.XAUUSD.tolerance*1.0)) { srMatch = lvl; break; }
+  }
+
+  const conf = [];
+  if(bias){
+    if(bias==='BUY' && rsiVal && rsiVal>50) conf.push('RSI');
+    if(bias==='SELL' && rsiVal && rsiVal<50) conf.push('RSI');
+  } else {
+    // if bias not set, still allow RSI as confluence for local direction
+    if(rsiVal){
+      if(rsiVal>60) conf.push('RSI_BUY');
+      if(rsiVal<40) conf.push('RSI_SELL');
+    }
+  }
+  if(fvg) conf.push('FVG');
+  if(ob) conf.push('OB');
+  if(srMatch) conf.push('SR');
+
+  return { bias, conf, details: { rsi: rsiVal, ema200, ms, fvg, ob, srMatch }, h1, m15, m5 };
+}
+
+/* =============== getSetup uses strategy rules and requires >=2 confluences =============== */
+async function getSetupFromStrategy(){
+  const computed = await computeBiasAndConfluences();
+  if(!computed.h1 || !computed.m15) return null;
+  const bias = computed.bias;
+  const conf = computed.conf;
+  // choose direction: bias preferred else infer from RSI if strong
+  let direction = bias;
+  if(!direction){
+    if(computed.details.rsi && computed.details.rsi > 60) direction = 'BUY';
+    if(computed.details.rsi && computed.details.rsi < 40) direction = 'SELL';
+  }
+  if(!direction) return { valid:false, reason:'NO_CLEAR_BIAS' };
+
+  // choose entry zone: prefer OB (if exists) else FVG else nearest SR
+  const m15 = computed.m15;
+  const price = m15[m15.length-1].close;
+  let entry = null;
+  if(computed.details.ob) entry = (direction==='BUY') ? computed.details.ob.low : computed.details.ob.high;
+  else if(computed.details.fvg) entry = (direction==='BUY') ? computed.details.fvg.low : computed.details.fvg.high;
+  else if(computed.details.srMatch) entry = computed.details.srMatch;
+  else entry = price;
+
+  // ensure minimum 2 confluences (RSI + one of OB/FVG/SR)
+  let confluenceCount = 0;
+  if(conf.includes('RSI') || conf.includes('RSI_BUY') || conf.includes('RSI_SELL')) confluenceCount++;
+  if(conf.includes('OB') || conf.includes('FVG') || conf.includes('SR')) confluenceCount++;
+
+  const entryFormatted = fmt(entry, CONFIG.XAUUSD.digits);
+  // TP/SL calculation using pips -> note: for gold we treat 1 pip = 0.1 roughly
+  const pipSize = 0.1;
+  const tp1 = direction==='BUY' ? fmt(Number(entryFormatted) + CONFIG.XAUUSD.tps.tp1 * pipSize, CONFIG.XAUUSD.digits) : fmt(Number(entryFormatted) - CONFIG.XAUUSD.tps.tp1 * pipSize, CONFIG.XAUUSD.digits);
+  const tp2 = direction==='BUY' ? fmt(Number(entryFormatted) + CONFIG.XAUUSD.tps.tp2 * pipSize, CONFIG.XAUUSD.digits) : fmt(Number(entryFormatted) - CONFIG.XAUUSD.tps.tp2 * pipSize, CONFIG.XAUUSD.digits);
+  const tp3 = direction==='BUY' ? fmt(Number(entryFormatted) + CONFIG.XAUUSD.tps.tp3 * pipSize, CONFIG.XAUUSD.digits) : fmt(Number(entryFormatted) - CONFIG.XAUUSD.tps.tp3 * pipSize, CONFIG.XAUUSD.digits);
+  const sl = direction==='BUY' ? fmt(Number(entryFormatted) - CONFIG.XAUUSD.slPips * pipSize, CONFIG.XAUUSD.digits) : fmt(Number(entryFormatted) + CONFIG.XAUUSD.slPips * pipSize, CONFIG.XAUUSD.digits);
+
+  return {
+    valid: confluenceCount >= 2,
+    confluenceCount,
+    reason: confluenceCount >= 2 ? 'OK':'INSUFFICIENT_CONFLUENCE',
+    direction,
+    entry: entryFormatted,
+    tp1, tp2, tp3, sl,
+    price: price,
+    details: computed.details,
+    m5: computed.m5,
+    m15: computed.m15
+  };
+}
+
+/* =============== EXECUTION & JOURNAL (frontend simulated) =============== */
+function executeAndRecord(pair, setupObj, livePrice, mode="AUTO", extraNote=""){
   if(activeSignal) return;
+  // discipline checks
   const cfg = CONFIG[pair];
   const session = getSessionName(new Date());
-  if(tradeStats.perSession[session] >= cfg.maxTradesPerSession) {
-    renderSignalUpper(`🚫 SESSION LIMIT REACHED FOR ${session}.`); speak("Session limit reached"); return;
+  if(tradeStats.perSession[session] >= cfg.maxTradesPerSession){ renderSignalUpper(`🚫 SESSION LIMIT REACHED FOR ${session}.`); speak("Session limit reached"); return; }
+  if(tradeStats.total >= cfg.maxTradesPerDay){ renderSignalUpper("🚫 DAILY MAX TRADES REACHED."); speak("Daily maximum trades reached"); return; }
+
+  // check M5 confirmation if available
+  let m5ok = true;
+  if(setupObj.m5 && setupObj.m5.length >= 2){
+    const last = setupObj.m5[setupObj.m5.length-1];
+    const prev = setupObj.m5[setupObj.m5.length-2];
+    m5ok = engulfingOrRejection(last, prev, setupObj.direction);
   }
-  if(tradeStats.total >= cfg.maxTradesPerDay) {
-    renderSignalUpper("🚫 DAILY MAX TRADES REACHED."); speak("Daily maximum trades reached"); return;
+  if(!m5ok){
+    renderSignalUpper("❗ M5 CONFIRMATION FAILED — NO ENTRY");
+    speak("No entry. M5 confirmation failed.");
+    return;
   }
 
-  const time = new Date().toLocaleTimeString("en-IN",{hour12:true});
+  const entryPrice = (Number(setupObj.entry) === Number(livePrice.toFixed(CONFIG.XAUUSD.digits))) ? fmt(livePrice, CONFIG.XAUUSD.digits) : setupObj.entry;
+
   activeSignal = {
     pair,
     direction: setupObj.direction,
-    entry: setupObj.entry,
+    entry: entryPrice,
     tp1: setupObj.tp1,
     tp2: setupObj.tp2,
     tp3: setupObj.tp3,
     sl: setupObj.sl,
-    time,
+    time: new Date().toLocaleTimeString("en-IN",{hour12:true}),
     mode,
     status: "RUNNING",
     note: extraNote
   };
 
+  // journal update
   tradeStats.total += 1;
-  tradeStats.perSession[session] = (tradeStats.perSession[session]||0)+1;
-  tradeStats.perPair[pair] = (tradeStats.perPair[pair]||0)+1;
+  tradeStats.perSession[session] = (tradeStats.perSession[session]||0) + 1;
+  tradeStats.perPair[pair] = (tradeStats.perPair[pair]||0) + 1;
   saveStats(tradeStats);
-  saveActive(); /* MODIFIED */
+  saveActive();
 
   const noteLine = extraNote ? `\nNOTE: ${extraNote}` : "";
   const execText = `📊 ${pair}: ${setupObj.direction}
 ⚙️ MODE: ${mode}
-🟡 ENTRY: ${setupObj.entry}
+🟡 ENTRY: ${activeSignal.entry}
 🎯 TP1: ${setupObj.tp1} | TP2: ${setupObj.tp2} | TP3: ${setupObj.tp3}
 🛑 SL: ${setupObj.sl}
-📍 LIVE PRICE: ${fmt(livePrice, CONFIG[pair].digits)}
+📍 LIVE PRICE: ${fmt(livePrice, CONFIG.XAUUSD.digits)}
+CONFLUENCE: ${setupObj.confluenceCount}
 📈 TRADE IS LIVE...${noteLine}`;
   renderSignalUpper(execText);
-  speak(`${pair} ${setupObj.direction}. Entry ${setupObj.entry}. TP1 ${setupObj.tp1}, SL ${setupObj.sl}`);
+  speak(`${pair} ${setupObj.direction}. Entry ${activeSignal.entry}. TP1 ${setupObj.tp1}, SL ${setupObj.sl}`);
 }
 
-/* ================= AUTO MONITOR (1MIN) + 10MIN CONFIRM ================= */
-const MONITOR_EVERY_MS = 60_000;
-const AUTO_DELAY_MS = 10 * 60_000;
+/* =============== TAP LEVEL (manual) =============== */
+async function tapLevel(level){
+  if(activeSignal){ renderSignalUpper("⏳ WAIT: A SIGNAL IS ALREADY ACTIVE!"); speak("Wait, a signal is already active"); return; }
+  const pair = pairSelect.value, cfg = CONFIG[pair];
+  const session = getSessionName(new Date());
+  if(tradeStats.perSession[session] >= cfg.maxTradesPerSession){ renderSignalUpper(`🚫 SESSION LIMIT REACHED FOR ${session}.`); speak("Session limit reached"); return; }
+  if(tradeStats.total >= cfg.maxTradesPerDay){ renderSignalUpper("🚫 DAILY MAX TRADES REACHED."); speak("Daily maximum trades reached"); return; }
+
+  const price = await fetchPrice("XAUUSD");
+  if(price === null){ renderSignalUpper("❌ ERROR FETCHING LIVE PRICE!"); return; }
+  const direction = (price < cfg.pivot) ? "SELL": "BUY";
+  const entry = fmt(level, cfg.digits);
+  const pipSize = 0.1;
+  const tp1 = direction==='BUY' ? fmt(Number(entry) + CONFIG.XAUUSD.tps.tp1 * pipSize, cfg.digits) : fmt(Number(entry) - CONFIG.XAUUSD.tps.tp1 * pipSize, cfg.digits);
+  const tp2 = direction==='BUY' ? fmt(Number(entry) + CONFIG.XAUUSD.tps.tp2 * pipSize, cfg.digits) : fmt(Number(entry) - CONFIG.XAUUSD.tps.tp2 * pipSize, cfg.digits);
+  const tp3 = direction==='BUY' ? fmt(Number(entry) + CONFIG.XAUUSD.tps.tp3 * pipSize, cfg.digits) : fmt(Number(entry) - CONFIG.XAUUSD.tps.tp3 * pipSize, cfg.digits);
+  const sl  = direction==='BUY' ? fmt(Number(entry) - CONFIG.XAUUSD.slPips * pipSize, cfg.digits) : fmt(Number(entry) + CONFIG.XAUUSD.slPips * pipSize, cfg.digits);
+
+  activeSignal = { pair, direction, entry, tp1, tp2, tp3, sl, time: new Date().toLocaleTimeString("en-IN",{hour12:true}), mode: "MANUAL-TAP", status:"RUNNING" };
+  tradeStats.total += 1;
+  tradeStats.perSession[session] = (tradeStats.perSession[session]||0) + 1;
+  tradeStats.perPair[pair] = (tradeStats.perPair[pair]||0) + 1;
+  saveStats(tradeStats);
+  saveActive();
+  const txt = `📊 ${pair}: ${direction}\n⚙️ MODE: MANUAL-TAP\n🟡 ENTRY: ${entry}\n🎯 TP1: ${tp1} | TP2: ${tp2} | TP3: ${tp3}\n🛑 SL: ${sl}\n📍 LIVE PRICE: ${fmt(price,CONFIG.XAUUSD.digits)}\n📈 TRADE IS LIVE...`;
+  renderSignalUpper(txt);
+  speak(`${pair} ${direction}. Entry ${entry}. TP1 ${tp1}, TP2 ${tp2}, SL ${sl}`);
+}
+
+/* =============== MANUAL GENERATE (uses full strategy) =============== */
+async function generateSignal(){
+  const pair = pairSelect.value;
+  const day = new Date().getDay();
+  if((pair==="XAUUSD") && (day===6||day===0)){ renderSignalUpper("⚠️ GOLD MARKET IS CLOSED TODAY."); speak("Gold market is closed today"); return; }
+  if(activeSignal){ renderSignalUpper("⏳ WAIT: A SIGNAL IS ALREADY ACTIVE!"); speak("Wait, a signal is already active"); return; }
+
+  // compute strategy setup
+  renderSignalUpper("🔍 ANALYZING MARKET — PLEASE WAIT...");
+  const setup = await getSetupFromStrategy();
+  if(!setup) { renderSignalUpper("❌ DATA ERROR — TRY AGAIN"); return; }
+  if(!setup.valid){
+    renderSignalUpper(`❌ NO VALID SETUP — ${setup.reason}`);
+    speak("No valid setup now.");
+    return;
+  }
+  // Fetch latest price
+  const price = await fetchPrice("XAUUSD");
+  if(price === null){ renderSignalUpper("❌ ERROR FETCHING PRICE"); return; }
+
+  // If price is at zone -> execute immediately at that price
+  const entryNumeric = Number(setup.entry);
+  if(Math.abs(price - entryNumeric) <= CONFIG.XAUUSD.tolerance){
+    executeAndRecord("XAUUSD", setup, price, "INTRADAY");
+    return;
+  }
+
+  // Allow early entry if within early tolerance
+  const diff = Math.abs(price - entryNumeric);
+  const allowEarly = (CONFIG.XAUUSD.earlyEntryPips && diff <= CONFIG.XAUUSD.earlyEntryPips) ||
+                     (CONFIG.XAUUSD.earlyEntryPercent && (diff/price)*100 <= CONFIG.XAUUSD.earlyEntryPercent);
+  if(allowEarly){
+    setup.entry = fmt(entryNumeric, CONFIG.XAUUSD.digits);
+    executeAndRecord("XAUUSD", setup, price, "EARLY");
+    return;
+  }
+
+  // Otherwise show levels clickable (user may tap)
+  const msg = `❌ NO VALID TRADE SETUP NOW.\nPRICE NOT NEAR ENTRY ZONE.\nCURRENT: ${fmt(price, CONFIG.XAUUSD.digits)}\n${renderLevelsClickable([setup.entry], CONFIG.XAUUSD.digits)}`;
+  renderSignalUpper(msg);
+  speak("No trade now. Price not near entry zone.");
+}
+
+/* =============== AUTO MONITOR + 10min confirm =============== */
+const MONITOR_EVERY_MS = 60_000; // 1 min
+const AUTO_DELAY_MS = 10 * 60_000; // 10 min
 
 async function autoMonitorTick(){
   if(activeSignal) return;
   const pair = pairSelect.value;
   const day = new Date().getDay();
   if((pair==="XAUUSD") && (day===6||day===0)){ renderSignalUpper("⚠️ GOLD MARKET IS CLOSED TODAY."); return; }
-  if(tradeStats.date !== getISTDateString(new Date())){ tradeStats = createEmptyStats(); saveStats(tradeStats); }
+  tradeStats = loadStats();
 
-  const cfg = CONFIG[pair];
-  const session = getSessionName(new Date());
-  if(tradeStats.perSession[session] >= cfg.maxTradesPerSession) { updateDebugBadge(); return; }
-  if(tradeStats.total >= cfg.maxTradesPerDay) { updateDebugBadge(); return; }
-
-  let price = null;
-  try{ price = await fetchLivePrice(pair); } catch(e){}
-  if(!price) return;
-  const s = getSetup(pair,price);
-  const baseHeader = `🛰️ AUTO MONITORING ACTIVE — PAIR: ${pair} — PRICE: ${fmt(price, CONFIG[pair].digits)}`;
-
-  if(!s.inZone){
-    const view = `${baseHeader}
-NO VALID SETUP NEAR ZONES.
-${renderLevelsClickable(s.entryZones, CONFIG[pair].digits)}`;
-    signalBox.innerHTML = view.toUpperCase().replace(/\n/g,"<br>");
+  // compute setup
+  const setup = await getSetupFromStrategy();
+  if(!setup){ renderSignalUpper("❌ DATA ERROR"); return; }
+  if(!setup.valid){
+    renderSignalUpper(`🛰️ AUTO MONITORING ACTIVE — PAIR: ${pair} — NO VALID SETUP`);
     updateDebugBadge();
     return;
   }
 
-  const nowStr = new Date().toLocaleTimeString("en-IN",{hour12:true});
-  const pendingText = `${baseHeader}
-FOUND SETUP NEAR LEVEL — MARKED AS PENDING
-DIRECTION: ${s.direction}
-PLANNED ENTRY: ${s.entry}
-SL: ${s.sl} | TP1: ${s.tp1} | TP2: ${s.tp2} | TP3: ${s.tp3}
-WILL AUTO-EXECUTE IN 10 MINUTES IF STILL VALID
-DETECTED AT: ${nowStr}`;
+  // show pending and wait 10 minutes
+  const price = await fetchPrice("XAUUSD");
+  const baseHeader = `🛰️ AUTO MONITORING ACTIVE — PAIR: ${pair} — PRICE: ${fmt(price, CONFIG.XAUUSD.digits)}`;
+  const pendingText = `${baseHeader}\nFOUND SETUP — DIRECTION: ${setup.direction}\nPLANNED ENTRY: ${setup.entry}\nSL: ${setup.sl} | TP1: ${setup.tp1} | TP2: ${setup.tp2}\nWILL AUTO-EXECUTE IN 10 MIN IF STILL VALID`;
   renderSignalUpper(pendingText);
   speak("Potential setup found. Will execute in ten minutes if still valid.");
 
   if(pendingTimer){ clearTimeout(pendingTimer); pendingTimer = null; }
-
   pendingTimer = setTimeout(async ()=>{
-    if(activeSignal) return;
-    if(tradeStats.perSession[session] >= cfg.maxTradesPerSession) { pendingTimer = null; updateDebugBadge(); return; }
-    if(tradeStats.total >= cfg.maxTradesPerDay) { pendingTimer = null; updateDebugBadge(); return; }
-
-    let rePrice = null;
-    try{ rePrice = await fetchLivePrice(pair); } catch(e){}
-    if(!rePrice) return;
-    const re = getSetup(pair,rePrice);
-    if(re.inZone){
-      executeAndRecordAutoOrManual(pair, re, rePrice, "AUTO");
-    } else {
-      const nearest = re.nearest ?? rePrice;
-      const diff = Math.abs(rePrice - nearest);
-      let allowEarly = false;
-      let earlyReason = "";
-      if(cfg.earlyEntryPips && diff <= cfg.earlyEntryPips){
-        allowEarly = true; earlyReason = `PRICE ${fmt(diff,cfg.digits)} AWAY (PIPS TOLERANCE)`;
-      } else if(cfg.earlyEntryPercent){
-        const pct = (diff/rePrice)*100;
-        if(pct <= cfg.earlyEntryPercent){
-          allowEarly = true; earlyReason = `PRICE ${fmt(pct,3)}% AWAY (PCT TOLERANCE)`;
-        }
-      }
-      if(!allowEarly && tradeStats.total < cfg.minTradesPerDay){
-        const extendedTol = (cfg.earlyEntryPips || (rePrice*cfg.earlyEntryPercent/100)) * 2;
-        const diff2 = Math.abs(rePrice - nearest);
-        if(diff2 <= extendedTol){
-          allowEarly = true; earlyReason = `FALLBACK MIN-TRADE MODE — EXTENDED TOLERANCE ${fmt(extendedTol,cfg.digits)}`;
-        }
-      }
-
-      if(allowEarly){
-        executeAndRecordAutoOrManual(pair, re, rePrice, "AUTO-EARLY", earlyReason);
-      } else {
-        const cancelText = `${baseHeader}
-SETUP INVALID AFTER 10 MINUTES — AUTO EXECUTION CANCELLED
-${renderLevelsClickable(re.entryZones, CONFIG[pair].digits)}`;
-        signalBox.innerHTML = cancelText.toUpperCase().replace(/\n/g,"<br>");
-        speak("Setup cancelled after recheck.");
-      }
-    }
     pendingTimer = null;
+    if(activeSignal) return;
+    const reSetup = await getSetupFromStrategy();
+    const rePrice = await fetchPrice("XAUUSD");
+    if(reSetup && reSetup.valid && Math.abs(Number(reSetup.entry) - rePrice) <= CONFIG.XAUUSD.earlyEntryPips){
+      executeAndRecord("XAUUSD", reSetup, rePrice, "AUTO");
+    } else {
+      renderSignalUpper(`${baseHeader}\nSETUP INVALID AFTER 10 MINUTES — AUTO CANCELLED\nENTRY: ${reSetup?reSetup.entry:'-'} `);
+      speak("Setup cancelled after recheck.");
+    }
     updateDebugBadge();
   }, AUTO_DELAY_MS);
-
   updateDebugBadge();
 }
 
-/* ================= MODE SWITCH ================= */
+/* =============== START/STOP MODE =============== */
 modeSelect.addEventListener("change", handleModeChange);
 function handleModeChange(){
   const mode = modeSelect.value;
   if(pendingTimer){ clearTimeout(pendingTimer); pendingTimer = null; }
   if(autoMonitorId){ clearInterval(autoMonitorId); autoMonitorId = null; }
-  if(mode === "AUTO"){
+  if(mode === "AUTO" && autoIsOn){
     renderSignalUpper("🛰️ AUTO MODE ON — MONITORING LIVE PRICE...");
     autoMonitorId = setInterval(autoMonitorTick, MONITOR_EVERY_MS);
     autoMonitorTick();
@@ -582,139 +533,108 @@ function handleModeChange(){
     renderSignalUpper("🖐️ MANUAL MODE — TAP A LEVEL OR PRESS GENERATE SIGNAL");
   }
 }
-handleModeChange();
 
-/* ================= RESET ================= */
+/* =============== RESET =============== */
 function resetSignal(){
   if(pendingTimer){ clearTimeout(pendingTimer); pendingTimer = null; }
   activeSignal = null;
-  clearActive(); /* MODIFIED */
+  clearActive();
   renderSignalUpper("🔄 RESET DONE. WAITING FOR SIGNAL...");
   speak("Reset done");
   updateDebugBadge();
 }
 
-/* ================= STARFIELD ================= */
-const canvas = document.getElementById("starfield");
-const ctx = canvas.getContext("2d");
-let stars = [];
-function resizeCanvas(){ canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
-resizeCanvas();
-for(let i=0;i<200;i++){ stars.push({x:Math.random()*canvas.width,y:Math.random()*canvas.height,size:Math.random()*2,speed:Math.random()*1}) }
-function animateStars(){
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-  ctx.fillStyle = "#00ffe7";
-  stars.forEach(star=>{
-    star.y += star.speed;
-    if(star.y>canvas.height) star.y = 0;
-    ctx.beginPath();
-    ctx.arc(star.x,star.y,star.size,0,2*Math.PI);
-    ctx.fill();
-  });
-  requestAnimationFrame(animateStars);
-}
-animateStars();
-
-/* ================= CLOCK ================= */
-setInterval(()=>{
-  const now = new Date();
-  timeDisplay.innerText = ("⏰ CURRENT INDIAN TIME: " + now.toLocaleTimeString("en-IN")).toUpperCase();
-},1000);
-
-/* ================= ACTIVE TRADE PRICE MONITOR (MODIFIED) ================= */
-const ACTIVE_TRADE_POLL_MS = 15_000; // 15s
+/* =============== ACTIVE TRADE MONITOR =============== */
+const ACTIVE_TRADE_POLL_MS = 15000;
 let activePollId = null;
-
 function startActivePoll(){
   if(activePollId) clearInterval(activePollId);
   activePollId = setInterval(checkActiveTrade, ACTIVE_TRADE_POLL_MS);
-  checkActiveTrade(); // immediate
+  checkActiveTrade();
 }
-
 async function checkActiveTrade(){
   if(!activeSignal) return;
   const pair = activeSignal.pair;
-  const cfg  = CONFIG[pair];
-  let price = null;
-  try{ price = await fetchLivePrice(pair); }catch(e){}
+  const cfg = CONFIG[pair];
+  const price = await fetchPrice("XAUUSD");
   if(price===null) return;
-
-  // parse numeric thresholds
   const dir = activeSignal.direction;
-  const tp1 = Number(activeSignal.tp1), tp2 = Number(activeSignal.tp2), tp3 = Number(activeSignal.tp3);
-  const sl  = Number(activeSignal.sl);
-
-  // hit logic: close on FIRST hit (TP3 > TP2 > TP1 priority for BUY; inverse for SELL via same checks)
+  const tp1 = Number(activeSignal.tp1), tp2 = Number(activeSignal.tp2), tp3 = Number(activeSignal.tp3), sl = Number(activeSignal.sl);
   let hit = null, hitLevel = null;
-  if(dir === "BUY"){
-    if(price <= sl){ hit = "SL"; hitLevel = sl; }
-    else if(price >= tp3){ hit = "TP3"; hitLevel = tp3; }
-    else if(price >= tp2){ hit = "TP2"; hitLevel = tp2; }
-    else if(price >= tp1){ hit = "TP1"; hitLevel = tp1; }
-  } else { // SELL
-    if(price >= sl){ hit = "SL"; hitLevel = sl; }
-    else if(price <= tp3){ hit = "TP3"; hitLevel = tp3; }
-    else if(price <= tp2){ hit = "TP2"; hitLevel = tp2; }
-    else if(price <= tp1){ hit = "TP1"; hitLevel = tp1; }
-  }
-
-  if(hit){
-    // announce + close + unlock
-    const closedAt = new Date().toLocaleTimeString("en-IN",{hour12:true});
-    const summary = `✅ TRADE CLOSED — ${pair} ${dir}
-RESULT: ${hit} @ ${fmt(hitLevel,cfg.digits)}
-ENTRY: ${activeSignal.entry} | SL: ${activeSignal.sl}
-TP1:${activeSignal.tp1} TP2:${activeSignal.tp2} TP3:${activeSignal.tp3}
-TIME: ${closedAt}
-📍 LIVE: ${fmt(price,cfg.digits)} — UNLOCKED FOR NEXT SIGNAL`;
-    renderSignalUpper(summary);
-    if(hit==="SL"){ speak(`${pair} stop loss hit. Trade closed.`); }
-    else { speak(`${pair} ${hit} hit. Trade closed.`); }
-
-    // mark and clear
-    activeSignal.status = `CLOSED_${hit}`;
-    saveActive(); // store final state briefly
-    // small delay then unlock (keep last result on screen)
-    setTimeout(()=>{
-      activeSignal = null;
-      clearActive();
-    }, 1500);
+  if(dir==='BUY'){
+    if(price <= sl){ hit='SL'; hitLevel=sl; }
+    else if(price >= tp3){ hit='TP3'; hitLevel=tp3; }
+    else if(price >= tp2){ hit='TP2'; hitLevel=tp2; }
+    else if(price >= tp1){ hit='TP1'; hitLevel=tp1; }
   } else {
-    // still running — keep showing live price line (writes on chart box)
-    const runningView =
-`📊 ${pair}: ${dir} — RUNNING
-ENTRY: ${activeSignal.entry} | SL: ${activeSignal.sl}
-TP1:${activeSignal.tp1} TP2:${activeSignal.tp2} TP3:${activeSignal.tp3}
-LIVE: ${fmt(price,cfg.digits)} • MODE: ${activeSignal.mode}`;
+    if(price >= sl){ hit='SL'; hitLevel=sl; }
+    else if(price <= tp3){ hit='TP3'; hitLevel=tp3; }
+    else if(price <= tp2){ hit='TP2'; hitLevel=tp2; }
+    else if(price <= tp1){ hit='TP1'; hitLevel=tp1; }
+  }
+  if(hit){
+    const closedAt = new Date().toLocaleTimeString("en-IN",{hour12:true});
+    const summary = `✅ TRADE CLOSED — ${pair} ${dir}\nRESULT: ${hit} @ ${fmt(hitLevel,cfg.digits)}\nENTRY: ${activeSignal.entry} | SL: ${activeSignal.sl}\nTP1:${activeSignal.tp1} TP2:${activeSignal.tp2} TP3:${activeSignal.tp3}\nTIME: ${closedAt}\n📍 LIVE: ${fmt(price,cfg.digits)} — UNLOCKED FOR NEXT SIGNAL`;
+    renderSignalUpper(summary);
+    if(hit==='SL') speak(`${pair} stop loss hit. Trade closed.`);
+    else speak(`${pair} ${hit} hit. Trade closed.`);
+    activeSignal.status = `CLOSED_${hit}`;
+    saveActive();
+    setTimeout(()=>{ activeSignal=null; clearActive(); }, 1500);
+  } else {
+    const runningView = `📊 ${pair}: ${dir} — RUNNING\nENTRY: ${activeSignal.entry} | SL: ${activeSignal.sl}\nTP1:${activeSignal.tp1} TP2:${activeSignal.tp2} TP3:${activeSignal.tp3}\nLIVE: ${fmt(price,cfg.digits)} • MODE: ${activeSignal.mode}`;
     renderSignalUpper(runningView);
   }
 }
 
-/* ================= INIT ================= */
-updateDebugBadge();
-logStatsToConsole();
-scheduleMidnightJob();
+/* =============== MIDNIGHT SUMMARY =============== */
+function loadSummaries(){ try{ const raw = localStorage.getItem(SUMMARY_KEY); return raw?JSON.parse(raw):[]; }catch(e){return[];} }
+function saveSummaryObject(obj){ const arr = loadSummaries(); arr.unshift(obj); const trimmed = arr.slice(0,7); localStorage.setItem(SUMMARY_KEY, JSON.stringify(trimmed)); }
+function scheduleMidnightJob(){
+  const now = new Date(); const utc = now.getTime() + (now.getTimezoneOffset()*60000); const istOffset = 5.5*60*60*1000; const istNow = new Date(utc + istOffset);
+  const nextMid = new Date(istNow); nextMid.setHours(24,0,5,0); const msUntil = nextMid.getTime() - istNow.getTime();
+  setTimeout(()=>{ runMidnightSummary(); setInterval(runMidnightSummary, 24*60*60*1000); }, msUntil);
+}
+function runMidnightSummary(){
+  try{
+    const s = tradeStats;
+    const summary = { date: s.date || getISTDateString(new Date()), total: s.total || 0, perSession: s.perSession || {ASIA:0,LONDON:0,NEWYORK:0}, perPair: s.perPair || {} };
+    saveSummaryObject(summary);
+    const msg = `MIDNIGHT SUMMARY — ${summary.date}\nTOTAL: ${summary.total} | ASIA:${summary.perSession.ASIA||0} LONDON:${summary.perSession.LONDON||0} NEWYORK:${summary.perSession.NEWYORK||0}`;
+    renderSignalUpper(msg); speak(`Aajker report. Total trades ${summary.total}.`); showMidnightToast(msg.replace(/\n/g,"<br>"));
+    tradeStats = createEmptyStats(); saveStats(tradeStats);
+  }catch(e){ console.error("midnight", e); }
+}
+function showMidnightToast(text){ midnightToast.innerHTML = text; midnightToast.style.display = "block"; setTimeout(()=>{ midnightToast.style.display="none"; }, 12000); }
 
-/* MODIFIED: restore active trade on refresh */
-(function restoreOnLoad(){
+/* =============== STARFIELD =============== */
+const canvas = document.getElementById("starfield"); const ctx = canvas.getContext("2d");
+function resizeCanvas(){ canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+resizeCanvas(); window.addEventListener('resize', resizeCanvas);
+let stars=[]; for(let i=0;i<160;i++) stars.push({x:Math.random()*canvas.width,y:Math.random()*canvas.height,size:Math.random()*1.8,speed:Math.random()*0.8});
+function animateStars(){ ctx.clearRect(0,0,canvas.width,canvas.height); ctx.fillStyle="#00ffe7"; stars.forEach(s=>{ s.y+=s.speed; if(s.y>canvas.height) s.y=0; ctx.beginPath(); ctx.arc(s.x,s.y,s.size,0,2*Math.PI); ctx.fill(); }); requestAnimationFrame(animateStars); }
+animateStars();
+
+/* =============== CLOCK & INIT =============== */
+setInterval(()=>{ const now = new Date(); timeDisplay.innerText = ("⏰ CURRENT INDIAN TIME: " + now.toLocaleTimeString("en-IN")).toUpperCase(); },1000);
+
+/* =============== RESTORE & START POLLS =============== */
+(function init(){
+  updateDebugBadge(); scheduleMidnightJob();
   const saved = loadActive();
-  if(saved){
-    activeSignal = saved;
-    // force pair dropdown to that pair (optional; but we keep current selection unchanged)
-    const cfg = CONFIG[activeSignal.pair];
-    const liveLine =
-`📊 ${activeSignal.pair}: ${activeSignal.direction}
-⚙️ MODE: ${activeSignal.mode}
-🟡 ENTRY: ${activeSignal.entry}
-🎯 TP1: ${activeSignal.tp1} | TP2: ${activeSignal.tp2} | TP3: ${activeSignal.tp3}
-🛑 SL: ${activeSignal.sl}
-⏱️ RESUMED AFTER REFRESH — TRADE LOCK ACTIVE`;
-    renderSignalUpper(liveLine);
-    speak("Active trade restored. Monitoring continues.");
-  }
-  startActivePoll(); // start/continue monitoring loop
+  if(saved){ activeSignal = saved; const liveLine = `📊 ${activeSignal.pair}: ${activeSignal.direction}\n⚙️ MODE: ${activeSignal.mode}\n🟡 ENTRY: ${activeSignal.entry}\n🎯 TP1: ${activeSignal.tp1}\n🛑 SL: ${activeSignal.sl}\n⏱️ RESUMED AFTER REFRESH`; renderSignalUpper(liveLine); speak("Active trade restored. Monitoring continues."); }
+  startActivePoll();
 })();
+
+/* =============== ON / OFF BUTTONS =============== */
+onBtn.addEventListener("click", ()=>{ if(autoIsOn){ renderSignalUpper("🟢 ANGEL ALREADY ON"); return; } autoIsOn = true; handleModeChange(); renderSignalUpper("🔴 ANGEL IS ON NOW — SUMON SIR"); speak("I'm ON now. Sumon Sir — TS Angel activated."); });
+offBtn.addEventListener("click", ()=>{ if(!autoIsOn){ renderSignalUpper("⚫ ANGEL ALREADY OFF"); return; } autoIsOn = false; if(autoMonitorId){ clearInterval(autoMonitorId); autoMonitorId = null; } if(pendingTimer){ clearTimeout(pendingTimer); pendingTimer = null; } renderSignalUpper("⚫ ANGEL IS OFF — PAUSED"); speak("Angel stopped."); });
+
+/* =============== HELPERS FOR RENDER LEVELS =============== */
+function renderLevelsClickable(levels,digits=2){ if(!levels||!levels.length) return ""; return `<div class="levels">LEVELS: ${levels.map(l=>`<a onclick="tapLevel(${l})">${fmt(l,digits)}</a>`).join(" ")}</div>`; }
+function getSessionName(date){ const utc = date.getTime() + (date.getTimezoneOffset()*60000); const istOffset = 5.5*60*60*1000; const ist = new Date(utc + istOffset); const h = ist.getHours(); if(h>=0 && h<=8) return "ASIA"; if(h>=9 && h<=16) return "LONDON"; return "NEWYORK"; }
+
+/* =============== END OF FILE =============== */
 </script>
 </body>
 </html>
- 
