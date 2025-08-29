@@ -1,445 +1,169 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>TS Angel — GOLD (XAUUSD) — Single File</title>
+  <meta charset="UTF-8">
+  <title>TS Angel Gold Master</title>
   <style>
-    html,body{margin:0;padding:0;overflow-x:hidden;font-family:Arial,Helvetica,sans-serif;background:#000;color:#fff;text-transform:uppercase}
-    canvas#starfield{position:fixed;inset:0;width:100%;height:100%;z-index:-1}
-    body{text-align:center;padding:18px}
-    h1{color:#00ffe7;letter-spacing:1px;animation:neon 1.6s infinite}
-    #time{font-size:0.95rem;color:#ffcc00;margin-top:-6px}
-    .bar{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin:14px 0}
-    select,button{padding:12px 18px;font-size:0.95rem;border-radius:8px;background:#111;color:#00ffea;border:2px solid #00ffea;cursor:pointer}
-    button:hover{background:#00ffea;color:#000}
-    .signal{margin-top:14px;background:#111;padding:18px;border-radius:10px;font-size:1rem;color:#ffcc00;line-height:1.4}
-    iframe{width:100%;height:480px;border:none;border-radius:10px;margin-top:16px;box-shadow:0 0 18px #00ffe7}
-    .wm{margin:16px 0 6px;color:#00ffe7}
-    .levels a{color:#00ffea;text-decoration:underline;cursor:pointer;margin:0 6px;display:inline-block}
-    #debug{position:fixed;right:10px;top:10px;background:rgba(0,0,0,.55);border:1px solid #00ffea;color:#00ffea;padding:8px 10px;border-radius:8px;font-size:12px;min-width:180px;text-align:left}
-    @keyframes neon{0%,100%{text-shadow:0 0 4px #0ff,0 0 10px #0ff}50%{text-shadow:0 0 2px #0ff,0 0 5px #0ff}}
+    body { margin:0; font-family:Arial; background:#000; color:#0ff; }
+    #controls { padding:10px; background:#111; display:flex; justify-content:space-between; align-items:center; }
+    #signalBox { padding:10px; font-size:16px; white-space:pre-line; }
+    button { padding:8px 16px; margin:5px; border:none; border-radius:6px; background:#0ff; color:#000; cursor:pointer; }
+    button:disabled { background:#555; color:#aaa; cursor:not-allowed; }
+    iframe { width:100%; height:400px; border:0; }
   </style>
 </head>
 <body>
-  <canvas id="starfield"></canvas>
-  <h1>🚀 TS ANGEL — GOLD MASTER (XAUUSD)</h1>
-  <div id="time">⏰</div>
-
-  <div class="bar">
-    <select id="mode">
-      <option value="MANUAL">MANUAL</option>
-      <option value="AUTO">AUTO</option>
-    </select>
-
-    <button id="angelOn">ANGEL ON</button>
-    <button id="angelOff">ANGEL OFF</button>
-    <button id="gen">GENERATE SIGNAL</button>
-    <button id="reset">RESET</button>
+  <div id="controls">
+    <div>
+      <select id="pairSelect">
+        <option value="XAUUSD">XAUUSD (Gold)</option>
+      </select>
+      <select id="modeSelect">
+        <option value="OFF">OFF</option>
+        <option value="AUTO">AUTO</option>
+      </select>
+    </div>
+    <button id="manualBtn">Manual Trade</button>
   </div>
+  <iframe id="tvChart"></iframe>
+  <div id="signalBox">🔄 Waiting for signal...</div>
 
-  <div class="signal" id="box">🔍 WAITING FOR SIGNAL...</div>
-  <iframe id="tv"></iframe>
-  <div class="wm">💡 CREATED BY TRADER SUMON — XAUUSD ONLY</div>
-
-  <script>
-  /* ====== BASIC UI ====== */
-  const box = document.getElementById('box');
-  const tv  = document.getElementById('tv');
-  const modeSel = document.getElementById('mode');
-  const angelOnBtn  = document.getElementById('angelOn');
-  const angelOffBtn = document.getElementById('angelOff');
-  const genBtn = document.getElementById('gen');
-  const resetBtn = document.getElementById('reset');
-
-  const debug = document.createElement('div');
-  debug.id = 'debug';
-  document.body.appendChild(debug);
-
-  function speak(t){
-    try{
-      const u = new SpeechSynthesisUtterance(t);
-      u.lang = 'bn-IN';
-      const v = speechSynthesis.getVoices();
-      const fv = v.find(x=>x.lang==='bn-IN' && x.name && x.name.toLowerCase().includes('female'));
-      if(fv) u.voice = fv;
-      speechSynthesis.speak(u);
-    }catch(e){}
+<script>
+/* ================= CONFIG ================= */
+const CONFIG = {
+  "XAUUSD": {
+    tv: "OANDA:XAUUSD",
+    digits: 2,
+    maxTradesPerSession: 2,
+    maxTradesPerDay: 4,
+    minTradesPerDay: 1,
+    earlyEntryPips: 3,
+    earlyEntryPercent: 0.1,
+    pivot: 2000,
+    zones: (p)=>[p-5,p,p+5]
   }
-  function upper(s){ return String(s).toUpperCase().replace(/\n/g,"<br>"); }
-  function show(s){ box.innerHTML = upper(s); }
-  function fmt(n,d=2){ return Number(n).toFixed(d); }
+};
 
-  /* ====== CLOCK ====== */
-  setInterval(()=>{
-    const now = new Date();
-    document.getElementById('time').innerText = ("⏰ CURRENT INDIAN TIME: " + now.toLocaleTimeString("en-IN")).toUpperCase();
-  },1000);
+let activeSignal = null;
+let tradeStats = { total:0, perSession:{}, perPair:{}, date:"" };
+let pendingTimer = null;
+let autoMonitorId = null;
+const signalBox = document.getElementById("signalBox");
+const pairSelect = document.getElementById("pairSelect");
+const modeSelect = document.getElementById("modeSelect");
+const tvChart = document.getElementById("tvChart");
 
-  /* ====== STARFIELD ====== */
-  const cvs = document.getElementById('starfield'), ctx = cvs.getContext('2d');
-  function rs(){ cvs.width = innerWidth; cvs.height = innerHeight; } rs();
-  addEventListener('resize', rs);
-  const stars = Array.from({length:220}, ()=>({x:Math.random()*cvs.width,y:Math.random()*cvs.height,s:Math.random()*2+0.2,v:Math.random()*0.8+0.2}));
-  (function anim(){ ctx.clearRect(0,0,cvs.width,cvs.height); ctx.fillStyle="#00ffe7";
-    stars.forEach(st=>{ st.y+=st.v; if(st.y>cvs.height) st.y=0; ctx.beginPath(); ctx.arc(st.x,st.y,st.s,0,2*Math.PI); ctx.fill(); });
-    requestAnimationFrame(anim);
-  })();
+/* ================= CHART LOAD ================= */
+function loadChart(){
+  const tv = CONFIG["XAUUSD"].tv;
+  tvChart.src = `https://s.tradingview.com/widgetembed/?frameElementId=tvChart&symbol=${encodeURIComponent(tv)}&interval=5&theme=dark&style=1&timezone=Asia/Kolkata&withdateranges=1&studies=[]&toolbarbg=rgba(0,0,0,1)&hide_side_toolbar=0&allow_symbol_change=0&saveimage=1&details=1&hotlist=0&calendar=0`;
+}
+loadChart();
 
-  /* ====== TRADINGVIEW CHART (XAUUSD ONLY) ====== */
-  function loadChart(){
-    const sym = "OANDA:XAUUSD";
-    tv.src = "https://s.tradingview.com/widgetembed/?frameElementId=tvChart&symbol="+encodeURIComponent(sym)+"&interval=5&theme=dark&style=1&timezone=Asia/Kolkata&withdateranges=1&studies=[]&toolbarbg=rgba(0,0,0,1)&hide_side_toolbar=0&allow_symbol_change=0&saveimage=1&details=1&hotlist=1&calendar=1";
-  }
-  loadChart();
+/* ================= HELPERS ================= */
+function fmt(n,d=2){ return Number(n).toFixed(d) }
+function renderSignalUpper(text){ signalBox.innerHTML = String(text).toUpperCase().replace(/\n/g,"<br>") }
+function getISTDateString(d){ return d.toISOString().split('T')[0]; }
+function getSessionName(date){ const h=date.getUTCHours()+5.5; if(h<9) return "ASIA"; if(h<16) return "LONDON"; return "NEWYORK"; }
 
-  /* ====== DATA FEEDS (TwelveData) ====== */
-  const TD_KEY = "cd96961a49e242fe939a80866e70c57d"; // from your earlier code
-  const SYMBOL = "XAU/USD";
-
-  async function tdPrice(){ // live price
-    const r = await fetch(`https://api.twelvedata.com/price?symbol=${encodeURIComponent(SYMBOL)}&apikey=${TD_KEY}`);
-    const d = await r.json(); return parseFloat(d.price);
-  }
-  async function tdSeries(interval="15min", points=400){
-    const r = await fetch(`https://api.twelvedata.com/time_series?symbol=${encodeURIComponent(SYMBOL)}&interval=${interval}&outputsize=${points}&order=asc&apikey=${TD_KEY}`);
-    const d = await r.json(); if(!d || !d.values) throw new Error("Series fetch failed");
-    // map to candles
-    return d.values.map(v=>({
-      time:v.datetime,
-      o:+v.open, h:+v.high, l:+v.low, c:+v.close
-    }));
-  }
-
-  /* ====== INDICATORS (EMA / RSI) ====== */
-  function ema(arr, period, accessor = x=>x){
-    const k = 2/(period+1);
-    let emaPrev = accessor(arr[0]);
-    const out = [emaPrev];
-    for(let i=1;i<arr.length;i++){
-      const val = accessor(arr[i]);
-      emaPrev = val*k + emaPrev*(1-k);
-      out.push(emaPrev);
-    }
-    return out;
-  }
-  function rsi(closes, period=14){
-    let gains=0,losses=0;
-    for(let i=1;i<=period;i++){
-      const ch = closes[i]-closes[i-1];
-      if(ch>=0) gains+=ch; else losses-=ch;
-    }
-    let avgG=gains/period, avgL=losses/period;
-    const out = Array(closes.length).fill(null);
-    out[period] = 100 - 100/(1 + (avgG/(avgL||1e-9)));
-    for(let i=period+1;i<closes.length;i++){
-      const ch = closes[i]-closes[i-1];
-      const g = ch>0?ch:0, l = ch<0?(-ch):0;
-      avgG = (avgG*(period-1)+g)/period;
-      avgL = (avgL*(period-1)+l)/period;
-      const rs = avgL===0 ? 1000 : avgG/avgL;
-      out[i] = 100 - 100/(1+rs);
-    }
-    return out;
-  }
-
-  /* ====== STRUCTURE: simple HH/HL vs LH/LL scan (last few swings) ====== */
-  function pivots(candles, lookback=5){
-    // crude pivot detector
-    const out = [];
-    for(let i=2;i<candles.length-2;i++){
-      const a=candles[i-2],b=candles[i-1],c=candles[i],d=candles[i+1],e=candles[i+2];
-      const isHigh = c.h>b.h && c.h>d.h && c.h>a.h && c.h>e.h;
-      const isLow  = c.l<b.l && c.l<d.l && c.l<a.l && c.l<e.l;
-      if(isHigh) out.push({type:"H", idx:i, price:c.h});
-      if(isLow)  out.push({type:"L", idx:i, price:c.l});
-    }
-    return out.slice(-lookback);
-  }
-  function isUpStructure(pivs){
-    // check last pattern ... L -> H -> L -> H with rising lows & highs
-    const highs = pivs.filter(p=>p.type==="H");
-    const lows  = pivs.filter(p=>p.type==="L");
-    if(highs.length<2 || lows.length<2) return false;
-    const risingLows = lows[lows.length-1].price > lows[lows.length-2].price;
-    const risingHighs= highs[highs.length-1].price> highs[highs.length-2].price;
-    return risingLows && risingHighs;
-  }
-  function isDownStructure(pivs){
-    const highs = pivs.filter(p=>p.type==="H");
-    const lows  = pivs.filter(p=>p.type==="L");
-    if(highs.length<2 || lows.length<2) return false;
-    const fallingLows = lows[lows.length-1].price < lows[lows.length-2].price;
-    const fallingHighs= highs[highs.length-1].price< highs[highs.length-2].price;
-    return fallingLows && fallingHighs;
-  }
-
-  /* ====== OB / FVG (very simple) ====== */
-  function lastOB(c15){ // last opposite candle before impulse
-    // bullish OB: last RED before up impulse (2 strong green)
-    for(let i=c15.length-3;i>=2;i--){
-      const c = c15[i];
-      const upImpulse = c15[i+1].c>c15[i+1].o && c15[i+2].c>c15[i+2].o && (c15[i+2].c - c15[i].o) > 1.5;
-      const dnImpulse = c15[i+1].c<c15[i+1].o && c15[i+2].c<c15[i+2].o && (c15[i].o - c15[i+2].c) > 1.5;
-      if(c.c<c.o && upImpulse){ // red then up
-        return {type:"BULL", hi:c.o, lo:c.l};
-      }
-      if(c.c>c.o && dnImpulse){ // green then down
-        return {type:"BEAR", hi:c.h, lo:c.o};
-      }
-    }
+/* ================= FETCH LIVE PRICE ================= */
+async function fetchLivePrice(pair){
+  try {
+    const r = await fetch(`https://api.goldapi.io/v1/XAU/USD`, { headers:{ "x-access-token":"goldapi-yourkey" }});
+    const j = await r.json();
+    return parseFloat(j.price);  // ensure exact live price
+  } catch(e){
+    console.log("Price fetch error", e);
     return null;
   }
-  function lastFVG(c15){
-    // bullish FVG: candle[i].high < candle[i+2].low (gap)
-    for(let i=c15.length-3;i>=2;i--){
-      const up = c15[i].h < c15[i+2].l;
-      const dn = c15[i].l > c15[i+2].h;
-      if(up)   return {type:"BULL", hi:c15[i+2].l, lo:c15[i].h};
-      if(dn)   return {type:"BEAR", hi:c15[i].l,  lo:c15[i+2].h};
-    }
-    return null;
-  }
+}
 
-  /* ====== STRATEGY CONFIG (pips) ====== */
-  const PIP = 0.1; // gold pip
-  const TP1_PIPS = 20;   // +20 pips
-  const TP2_PIPS = 40;   // +40 pips
-  const SL_MIN_PIPS = 15;// 15–20 pips window, আমরা 18 ধরলাম
-  const SL_USE_PIPS = 18;
+/* ================= STRATEGY ================= */
+// Simplified OB + FVG detection
+function detectOBFVG(prices){
+  // prices = last candles array (mock for now)
+  let last = prices[prices.length-1];
+  let prev = prices[prices.length-2];
+  let signal = { ob:false, fvg:false };
+  if(last.low > prev.high) signal.fvg=true;   // simple FVG up
+  if(last.high < prev.low) signal.fvg=true;   // simple FVG down
+  if(prev.close < prev.open && last.close > last.open) signal.ob=true; // bullish OB
+  if(prev.close > prev.open && last.close < last.open) signal.ob=true; // bearish OB
+  return signal;
+}
 
-  /* ====== CORE: evaluate setup ====== */
-  async function evaluateSetup(){
-    // fetch series
-    const [h1, m15, m5] = await Promise.all([
-      tdSeries("1h",  300),
-      tdSeries("15min",400),
-      tdSeries("5min", 400),
-    ]);
-    const live = await tdPrice();
+function getSetup(pair,price){
+  const cfg = CONFIG[pair];
+  let direction = price > cfg.pivot ? "BUY":"SELL";
 
-    // EMA 200 bias (H1)
-    const emaH1 = ema(h1, 200, x=>x.c);
-    const lastH1 = h1[h1.length-1], lastE1 = emaH1[emaH1.length-1];
-    const pivH1 = pivots(h1, 8);
-    const upStruct = isUpStructure(pivH1);
-    const dnStruct = isDownStructure(pivH1);
+  // mock RSI for demo
+  let rsi = (price % 100)/2; 
+  if(direction==="BUY" && rsi<50) direction=""; 
+  if(direction==="SELL" && rsi>50) direction=""; 
 
-    let bias=null;
-    if(lastH1.c > lastE1 && upStruct) bias="BUY";
-    else if(lastH1.c < lastE1 && dnStruct) bias="SELL";
+  let obfvg = detectOBFVG([{open:price-2,close:price-1,high:price,low:price-3},{open:price,close:price+1,high:price+2,low:price-1}]);
 
-    // RSI(M15)
-    const closes15 = m15.map(x=>x.c);
-    const rsi15 = rsi(closes15,14);
-    const rsiLast = rsi15[rsi15.length-1];
-
-    let rsiOK=false;
-    if(bias==="BUY"  && rsiLast>50) rsiOK=true;
-    if(bias==="SELL" && rsiLast<50) rsiOK=true;
-
-    // OB/FVG on M15 (need touch/near)
-    const ob = lastOB(m15);
-    const fvg= lastFVG(m15);
-
-    function nearZone(price, zone, tol=0.5){ // $0.5 dollar tolerance
-      if(!zone) return false;
-      const hi = Math.max(zone.hi, zone.lo);
-      const lo = Math.min(zone.hi, zone.lo);
-      if(price>=lo-tol && price<=hi+tol) return true;
-      return false;
-    }
-
-    const inOB  = nearZone(live, ob, 0.7);
-    const inFVG = nearZone(live, fvg,0.7);
-
-    // Need minimum 2 confluences: (Bias via EMA+Structure) + (OB/FVG near) + (RSI side)
-    const confluences = [
-      bias?1:0,
-      rsiOK?1:0,
-      (inOB||inFVG)?1:0
-    ].reduce((a,b)=>a+b,0);
-
+  if(direction && (obfvg.ob||obfvg.fvg)){
     return {
-      live,
-      bias,
-      rsiLast: Number(rsiLast||0).toFixed(1),
-      rsiOK,
-      ob, fvg, inOB, inFVG,
-      ok: (bias && rsiOK && (inOB||inFVG) && confluences>=2)
+      inZone:true,
+      direction,
+      entry:price,
+      sl: direction==="BUY" ? price-20 : price+20,
+      tp1: direction==="BUY" ? price+20 : price-20,
+      tp2: direction==="BUY" ? price+40 : price-40,
+      tp3: direction==="BUY" ? price+60 : price-60
     };
   }
+  return { inZone:false };
+}
 
-  /* ====== ENTRY/TP/SL (entry = LIVE PRICE NOW) ====== */
-  function makeOrder(side, entry){
-    // TP1/TP2 from live price, SL 15–20 pips
-    const tp1 = side==="BUY" ? entry + TP1_PIPS*PIP : entry - TP1_PIPS*PIP;
-    const tp2 = side==="BUY" ? entry + TP2_PIPS*PIP : entry - TP2_PIPS*PIP;
-    const sl  = side==="BUY" ? entry - SL_USE_PIPS*PIP : entry + SL_USE_PIPS*PIP;
-    return {
-      side,
-      entry: fmt(entry,2),
-      tp1: fmt(tp1,2),
-      tp2: fmt(tp2,2),
-      sl:  fmt(sl,2)
-    };
-  }
-
-  /* ====== STATE ====== */
-  let ANGEL_ON = false;
-  let ACTIVE = null;
-  let autoTimer = null;
-
-  function setDebug(extra=""){
-    const s = ACTIVE ? ACTIVE.side : "-";
-    debug.innerHTML = `ANGEL:${ANGEL_ON?'ON':'OFF'}<br>MODE:${modeSel.value}<br>ACTIVE:${ACTIVE? 'YES('+s+')':'NO'}<br>${extra}`;
-  }
-
-  /* ====== SIGNAL RENDER ====== */
-  function renderOrder(o, live, note=""){
-    const t = `
-📊 XAUUSD: ${o.side}
-🟡 ENTRY: ${o.entry} (LIVE)
-🎯 TP1: ${o.tp1} | TP2: ${o.tp2}
-🛑 SL: ${o.sl}
-📍 LIVE PRICE: ${fmt(live,2)}
-${note?('📝 '+note):''}
-📈 TRADE IS LIVE...`;
-    show(t);
-  }
-
-  /* ====== HANDLERS ====== */
-  angelOnBtn.onclick = async ()=>{
-    ANGEL_ON = true;
-    speak("Angel is on now, Sumon Sir. Gold strategy armed.");
-    show("🛰️ ANGEL ON — STRATEGY ARMED (XAUUSD)");
-    setDebug();
-    if(modeSel.value==="AUTO"){ startAuto(); }
+/* ================= EXECUTION ================= */
+function executeAndRecord(pair, setup, price, mode="AUTO"){
+  if(activeSignal) return;
+  activeSignal = {
+    pair, direction: setup.direction, entry: price,
+    tp1: setup.tp1, tp2: setup.tp2, tp3: setup.tp3,
+    sl: setup.sl, mode, status:"RUNNING", time:new Date().toLocaleTimeString("en-IN",{hour12:true})
   };
-  angelOffBtn.onclick = ()=>{
-    ANGEL_ON = false;
-    stopAuto();
-    show("🛑 ANGEL OFF");
-    speak("Angel off.");
-    setDebug();
-  };
-  resetBtn.onclick = ()=>{
-    ACTIVE=null;
-    show("🔄 RESET DONE. WAITING FOR SIGNAL...");
-    setDebug();
-  };
-  genBtn.onclick = async ()=>{
-    if(!ANGEL_ON){ show("⚠️ ANGEL OFF — TURN ON FIRST"); speak("Turn Angel on first"); return; }
-    if(ACTIVE){ show("⏳ ONE TRADE RUNNING — WAIT TP/SL"); return; }
-    try{
-      const ev = await evaluateSetup();
-      const parts = [
-        `BIAS:${ev.bias||'-'}`,
-        `RSI15:${ev.rsiLast}`,
-        `IN-OB:${ev.inOB?'Y':'N'}`,
-        `IN-FVG:${ev.inFVG?'Y':'N'}`
-      ].join(' | ');
-      setDebug(parts);
-      if(ev.ok){
-        const side = ev.bias;
-        const order = makeOrder(side, ev.live); // ENTRY = LIVE PRICE NOW
-        ACTIVE = order;
-        renderOrder(order, ev.live, "MANUAL CONFIRMED");
-        speak(`Gold ${side}. Entry ${order.entry}. TP1 ${order.tp1}. SL ${order.sl}.`);
-      }else{
-        show(`❌ NO VALID SETUP NOW.
-LIVE: ${fmt(ev.live,2)}
-Need: Bias + RSI + OB/FVG`);
-        speak("No valid setup now.");
-      }
-    }catch(e){
-      console.error(e);
-      show("❌ DATA FETCH ERROR");
-    }
-  };
+  renderSignalUpper(`📊 ${pair}: ${setup.direction}
+🟡 ENTRY: ${fmt(price)}
+🎯 TP1: ${fmt(setup.tp1)} | TP2: ${fmt(setup.tp2)} | TP3: ${fmt(setup.tp3)}
+🛑 SL: ${fmt(setup.sl)}
+⚙️ MODE: ${mode}`);
+}
 
-  /* ====== AUTO MODE ====== */
-  const AUTO_MS = 60_000; // 1 min
-  function startAuto(){
-    stopAuto();
-    autoTimer = setInterval(autoTick, AUTO_MS);
-    autoTick();
+/* ================= AUTO MONITOR ================= */
+async function autoMonitorTick(){
+  if(activeSignal) return;
+  const price = await fetchLivePrice("XAUUSD");
+  if(!price) return;
+  const setup = getSetup("XAUUSD", price);
+  if(setup.inZone){
+    executeAndRecord("XAUUSD", setup, price, "AUTO");
+  } else {
+    renderSignalUpper(`🛰️ AUTO MONITORING ACTIVE\nNO VALID SETUP\nLIVE PRICE: ${fmt(price)}`);
   }
-  function stopAuto(){
-    if(autoTimer){ clearInterval(autoTimer); autoTimer=null; }
-  }
-  async function autoTick(){
-    if(!ANGEL_ON || ACTIVE) return;
-    try{
-      const ev = await evaluateSetup();
-      const parts = [
-        `BIAS:${ev.bias||'-'}`,
-        `RSI15:${ev.rsiLast}`,
-        `OB:${ev.inOB?'Y':'N'} FVG:${ev.inFVG?'Y':'N'}`
-      ].join(' | ');
-      setDebug(parts);
-      if(ev.ok){
-        const side = ev.bias;
-        const order = makeOrder(side, ev.live); // ENTRY = LIVE PRICE NOW
-        ACTIVE = order;
-        renderOrder(order, ev.live, "AUTO");
-        speak(`Auto trade. Gold ${side}. Entry ${order.entry}. TP one ${order.tp1}. Stop loss ${order.sl}.`);
-      }else{
-        show(`🛰️ AUTO — SCANNING...
-LIVE: ${fmt(ev.live,2)}
-${parts}`);
-      }
-    }catch(e){
-      console.error(e);
-      show("❌ DATA FETCH ERROR");
-    }
-  }
+}
 
-  /* ====== SIMPLE TP/SL MONITOR (poll live) ====== */
-  const MON_MS = 15_000;
-  setInterval(async ()=>{
-    if(!ACTIVE) return;
-    try{
-      const price = await tdPrice();
-      const dir = ACTIVE.side;
-      const tp1 = +ACTIVE.tp1, tp2 = +ACTIVE.tp2, sl = +ACTIVE.sl;
-      let hit=null, hitLvl=null;
-      if(dir==="BUY"){
-        if(price<=sl){ hit="SL"; hitLvl=sl; }
-        else if(price>=tp2){ hit="TP2"; hitLvl=tp2; }
-        else if(price>=tp1){ hit="TP1"; hitLvl=tp1; }
-      }else{
-        if(price>=sl){ hit="SL"; hitLvl=sl; }
-        else if(price<=tp2){ hit="TP2"; hitLvl=tp2; }
-        else if(price<=tp1){ hit="TP1"; hitLvl=tp1; }
-      }
-      if(hit){
-        show(`✅ TRADE CLOSED — ${dir}
-RESULT: ${hit} @ ${fmt(hitLvl,2)}
-ENTRY: ${ACTIVE.entry} | SL:${ACTIVE.sl}
-TP1:${ACTIVE.tp1} | TP2:${ACTIVE.tp2}
-LIVE: ${fmt(price,2)} — UNLOCKED`);
-        speak(hit==="SL" ? "Stop loss hit." : `${hit} hit. Trade closed.`);
-        ACTIVE=null;
-      }else{
-        show(`📊 XAUUSD: ${dir} — RUNNING
-ENTRY: ${ACTIVE.entry} | SL:${ACTIVE.sl}
-TP1:${ACTIVE.tp1} | TP2:${ACTIVE.tp2}
-LIVE: ${fmt(price,2)} • MODE:${modeSel.value}`);
-      }
-    }catch(e){}
-  }, MON_MS);
+/* ================= MODE SWITCH ================= */
+modeSelect.addEventListener("change", ()=>{
+  if(autoMonitorId){ clearInterval(autoMonitorId); autoMonitorId=null; }
+  if(modeSelect.value==="AUTO"){
+    renderSignalUpper("🛰️ AUTO MODE ON — MONITORING...");
+    autoMonitorId = setInterval(autoMonitorTick, 60_000);
+  } else {
+    renderSignalUpper("🔴 AUTO OFF");
+  }
+});
 
-  /* ====== INIT ====== */
-  show("🔧 LOADING...");
-  (async()=>{
-    try{
-      const p = await tdPrice();
-      show(`READY — LIVE: ${fmt(p,2)} — WAITING FOR SIGNAL`);
-    }catch(e){
-      show("READY — (PRICE PENDING) — WAITING FOR SIGNAL");
-    }
-  })();
-  </script>
+/* ================= MANUAL TRADE ================= */
+document.getElementById("manualBtn").addEventListener("click", async ()=>{
+  const price = await fetchLivePrice("XAUUSD");
+  if(!price) return;
+  const setup = getSetup("XAUUSD", price);
+  if(setup.inZone) executeAndRecord("XAUUSD", setup, price, "MANUAL");
+  else renderSignalUpper("❌ NO VALID MANUAL SETUP NOW.");
+});
+</script>
 </body>
 </html>
